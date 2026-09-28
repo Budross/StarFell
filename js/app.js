@@ -1,8 +1,8 @@
-import { locationDefinition, getEntityLabel } from "./entityQueries.js";
-import { buildGameSystems } from "./bootstrap.js";
-import { createGameRuntime } from "./runtime.js";
-import { createView } from "./game.js";
-import { createActionRegistry } from "./playerActions.js";
+import { locationDefinition, getEntityLabel } from "./js/entityQueries.js";
+import { buildGameSystems } from "./js/bootstrap.js";
+import { createGameRuntime } from "./js/runtime.js";
+import { createView } from "./js/game.js";
+import { createActionRegistry } from "./js/playerActions.js";
 import playerActionsDisplay from "./playerActionsDisplay.js";
 import craftingDisplay from "./craftingDisplay.js";
 import processingDisplay from './processingDisplay.js';
