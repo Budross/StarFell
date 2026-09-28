@@ -1,0 +1,1492 @@
+{
+  "1": {
+    "saveVersion": 1,
+    "simulationTime": 42,
+    "locationId": "habitat",
+    "crafting": {
+      "recipeId": null,
+      "ingredients": {}
+    },
+    "knowledge": {
+      "discoveries": {}
+    },
+    "flags": {},
+    "resources": {
+      "power": 8,
+      "scrap": 7,
+      "electronicSalvage": 3,
+      "siliconMinerals": 2,
+      "iron": 2,
+      "conductiveParts": 0,
+      "electronicParts": 0,
+      "solarCells": 0,
+      "solarPanel": 0,
+      "batteryBank": 0,
+      "radioAntenna": 0
+    },
+    "infrastructure": {
+      "engine": {
+        "quantity": 0,
+        "health": 1,
+        "enabled": true,
+        "upgrades": []
+      },
+      "fabricator": {
+        "quantity": 1,
+        "health": 1,
+        "enabled": true,
+        "upgrades": []
+      },
+      "solar": {
+        "quantity": 1,
+        "health": 0.2,
+        "enabled": true,
+        "upgrades": []
+      },
+      "habitat": {
+        "quantity": 1,
+        "health": 1,
+        "enabled": true,
+        "upgrades": []
+      },
+      "installedPanels": {
+        "quantity": 0,
+        "health": 1,
+        "enabled": true,
+        "upgrades": []
+      },
+      "installedBatteryBanks": {
+        "quantity": 0,
+        "health": 1,
+        "enabled": true,
+        "upgrades": []
+      },
+      "installedAntenna": {
+        "quantity": 0,
+        "health": 1,
+        "enabled": true,
+        "upgrades": []
+      }
+    }
+  },
+  "2": {
+    "saveVersion": 2,
+    "simulationTime": 42,
+    "locationId": "habitat",
+    "crafting": {
+      "recipeId": null,
+      "ingredients": {}
+    },
+    "knowledge": {
+      "discoveries": {}
+    },
+    "flags": {},
+    "resources": {
+      "power": 8,
+      "scrap": 7,
+      "electronicSalvage": 3,
+      "siliconMinerals": 2,
+      "iron": 2,
+      "conductiveParts": 0,
+      "electronicParts": 0,
+      "solarCells": 0,
+      "solarPanel": 0,
+      "batteryBank": 0,
+      "radioAntenna": 0
+    },
+    "infrastructure": {
+      "engine": {
+        "quantity": 0,
+        "health": 1,
+        "enabled": true,
+        "upgrades": []
+      },
+      "fabricator": {
+        "quantity": 1,
+        "health": 1,
+        "enabled": true,
+        "upgrades": []
+      },
+      "solar": {
+        "quantity": 1,
+        "health": 0.2,
+        "enabled": true,
+        "upgrades": []
+      },
+      "habitat": {
+        "quantity": 1,
+        "health": 1,
+        "enabled": true,
+        "upgrades": []
+      },
+      "installedPanels": {
+        "quantity": 0,
+        "health": 1,
+        "enabled": true,
+        "upgrades": []
+      },
+      "installedBatteryBanks": {
+        "quantity": 0,
+        "health": 1,
+        "enabled": true,
+        "upgrades": []
+      },
+      "installedAntenna": {
+        "quantity": 0,
+        "health": 1,
+        "enabled": true,
+        "upgrades": []
+      }
+    }
+  },
+  "3": {
+    "saveVersion": 3,
+    "simulationTime": 42,
+    "locationId": "habitat",
+    "locations": {
+      "vicinity": {
+        "ownerId": null,
+        "areaId": null,
+        "resources": {
+          "power": 0,
+          "scrap": 0,
+          "electronicSalvage": 0,
+          "siliconMinerals": 0,
+          "iron": 0,
+          "conductiveParts": 0,
+          "electronicParts": 0,
+          "solarCells": 0,
+          "solarPanel": 0,
+          "batteryBank": 0,
+          "radioAntenna": 0
+        },
+        "infrastructure": {
+          "engine": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "fabricator": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "solar": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "habitat": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedPanels": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedBatteryBanks": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedAntenna": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          }
+        },
+        "flags": {}
+      },
+      "outerReach": {
+        "ownerId": null,
+        "areaId": null,
+        "resources": {
+          "power": 0,
+          "scrap": 0,
+          "electronicSalvage": 0,
+          "siliconMinerals": 0,
+          "iron": 0,
+          "conductiveParts": 0,
+          "electronicParts": 0,
+          "solarCells": 0,
+          "solarPanel": 0,
+          "batteryBank": 0,
+          "radioAntenna": 0
+        },
+        "infrastructure": {
+          "engine": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "fabricator": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "solar": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "habitat": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedPanels": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedBatteryBanks": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedAntenna": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          }
+        },
+        "flags": {}
+      },
+      "habitat": {
+        "ownerId": "player",
+        "areaId": "vicinity",
+        "resources": {
+          "power": 8,
+          "scrap": 7,
+          "electronicSalvage": 3,
+          "siliconMinerals": 2,
+          "iron": 2,
+          "conductiveParts": 0,
+          "electronicParts": 0,
+          "solarCells": 0,
+          "solarPanel": 0,
+          "batteryBank": 0,
+          "radioAntenna": 0
+        },
+        "infrastructure": {
+          "engine": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "fabricator": {
+            "quantity": 1,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "solar": {
+            "quantity": 1,
+            "health": 0.2,
+            "enabled": true,
+            "upgrades": []
+          },
+          "habitat": {
+            "quantity": 1,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedPanels": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedBatteryBanks": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedAntenna": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          }
+        },
+        "flags": {}
+      },
+      "supplyPlatform": {
+        "ownerId": "player",
+        "areaId": "vicinity",
+        "resources": {
+          "power": 2,
+          "scrap": 0,
+          "electronicSalvage": 0,
+          "siliconMinerals": 0,
+          "iron": 0,
+          "conductiveParts": 0,
+          "electronicParts": 0,
+          "solarCells": 0,
+          "solarPanel": 0,
+          "batteryBank": 0,
+          "radioAntenna": 0
+        },
+        "infrastructure": {
+          "engine": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "fabricator": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "solar": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "habitat": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedPanels": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedBatteryBanks": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedAntenna": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          }
+        },
+        "flags": {}
+      },
+      "derelict": {
+        "ownerId": null,
+        "areaId": "outerReach",
+        "resources": {
+          "power": 0,
+          "scrap": 0,
+          "electronicSalvage": 0,
+          "siliconMinerals": 0,
+          "iron": 0,
+          "conductiveParts": 0,
+          "electronicParts": 0,
+          "solarCells": 0,
+          "solarPanel": 0,
+          "batteryBank": 0,
+          "radioAntenna": 0
+        },
+        "infrastructure": {
+          "engine": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "fabricator": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "solar": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "habitat": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedPanels": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedBatteryBanks": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedAntenna": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          }
+        },
+        "flags": {}
+      }
+    },
+    "crafting": {
+      "recipeId": null,
+      "ingredients": {}
+    },
+    "knowledge": {
+      "discoveries": {}
+    },
+    "flags": {}
+  },
+  "4": {
+    "saveVersion": 4,
+    "simulationTime": 42,
+    "locationId": "habitat",
+    "locations": {
+      "vicinity": {
+        "ownerId": null,
+        "areaId": null,
+        "resources": {
+          "power": 0,
+          "scrap": 0,
+          "electronicSalvage": 0,
+          "siliconMinerals": 0,
+          "iron": 0,
+          "conductiveParts": 0,
+          "electronicParts": 0,
+          "solarCells": 0,
+          "solarPanel": 0,
+          "batteryBank": 0,
+          "radioAntenna": 0
+        },
+        "infrastructure": {
+          "engine": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "fabricator": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "solar": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "habitat": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedPanels": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedBatteryBanks": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedAntenna": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          }
+        },
+        "flags": {}
+      },
+      "outerReach": {
+        "ownerId": null,
+        "areaId": null,
+        "resources": {
+          "power": 0,
+          "scrap": 0,
+          "electronicSalvage": 0,
+          "siliconMinerals": 0,
+          "iron": 0,
+          "conductiveParts": 0,
+          "electronicParts": 0,
+          "solarCells": 0,
+          "solarPanel": 0,
+          "batteryBank": 0,
+          "radioAntenna": 0
+        },
+        "infrastructure": {
+          "engine": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "fabricator": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "solar": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "habitat": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedPanels": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedBatteryBanks": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedAntenna": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          }
+        },
+        "flags": {}
+      },
+      "habitat": {
+        "ownerId": "player",
+        "areaId": "vicinity",
+        "resources": {
+          "power": 8,
+          "scrap": 7,
+          "electronicSalvage": 3,
+          "siliconMinerals": 2,
+          "iron": 2,
+          "conductiveParts": 0,
+          "electronicParts": 0,
+          "solarCells": 0,
+          "solarPanel": 0,
+          "batteryBank": 0,
+          "radioAntenna": 0
+        },
+        "infrastructure": {
+          "engine": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "fabricator": {
+            "quantity": 1,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "solar": {
+            "quantity": 1,
+            "health": 0.2,
+            "enabled": true,
+            "upgrades": []
+          },
+          "habitat": {
+            "quantity": 1,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedPanels": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedBatteryBanks": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedAntenna": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          }
+        },
+        "flags": {}
+      },
+      "supplyPlatform": {
+        "ownerId": "player",
+        "areaId": "vicinity",
+        "resources": {
+          "power": 2,
+          "scrap": 0,
+          "electronicSalvage": 0,
+          "siliconMinerals": 0,
+          "iron": 0,
+          "conductiveParts": 0,
+          "electronicParts": 0,
+          "solarCells": 0,
+          "solarPanel": 0,
+          "batteryBank": 0,
+          "radioAntenna": 0
+        },
+        "infrastructure": {
+          "engine": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "fabricator": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "solar": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "habitat": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedPanels": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedBatteryBanks": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedAntenna": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          }
+        },
+        "flags": {}
+      },
+      "derelict": {
+        "ownerId": null,
+        "areaId": "outerReach",
+        "resources": {
+          "power": 0,
+          "scrap": 0,
+          "electronicSalvage": 0,
+          "siliconMinerals": 0,
+          "iron": 0,
+          "conductiveParts": 0,
+          "electronicParts": 0,
+          "solarCells": 0,
+          "solarPanel": 0,
+          "batteryBank": 0,
+          "radioAntenna": 0
+        },
+        "infrastructure": {
+          "engine": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "fabricator": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "solar": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "habitat": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedPanels": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedBatteryBanks": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedAntenna": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          }
+        },
+        "flags": {}
+      }
+    },
+    "crafting": {
+      "recipeId": null,
+      "ingredients": {}
+    },
+    "knowledge": {
+      "discoveries": {}
+    },
+    "flags": {}
+  },
+  "5": {
+    "saveVersion": 5,
+    "simulationTime": 42,
+    "locationId": "habitat",
+    "locations": {
+      "vicinity": {
+        "ownerId": null,
+        "areaId": null,
+        "resources": {
+          "power": 0,
+          "scrap": 0,
+          "electronicSalvage": 0,
+          "siliconMinerals": 0,
+          "iron": 0,
+          "conductiveParts": 0,
+          "electronicParts": 0,
+          "solarCells": 0,
+          "solarPanel": 0,
+          "batteryBank": 0,
+          "radioAntenna": 0
+        },
+        "infrastructure": {
+          "engine": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "fabricator": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "solar": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "habitat": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedPanels": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedBatteryBanks": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedAntenna": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          }
+        },
+        "flags": {}
+      },
+      "outerReach": {
+        "ownerId": null,
+        "areaId": null,
+        "resources": {
+          "power": 0,
+          "scrap": 0,
+          "electronicSalvage": 0,
+          "siliconMinerals": 0,
+          "iron": 0,
+          "conductiveParts": 0,
+          "electronicParts": 0,
+          "solarCells": 0,
+          "solarPanel": 0,
+          "batteryBank": 0,
+          "radioAntenna": 0
+        },
+        "infrastructure": {
+          "engine": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "fabricator": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "solar": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "habitat": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedPanels": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedBatteryBanks": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedAntenna": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          }
+        },
+        "flags": {}
+      },
+      "habitat": {
+        "ownerId": "player",
+        "areaId": "vicinity",
+        "resources": {
+          "power": 8,
+          "scrap": 7,
+          "electronicSalvage": 3,
+          "siliconMinerals": 2,
+          "iron": 2,
+          "conductiveParts": 0,
+          "electronicParts": 0,
+          "solarCells": 0,
+          "solarPanel": 0,
+          "batteryBank": 0,
+          "radioAntenna": 0
+        },
+        "infrastructure": {
+          "engine": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "fabricator": {
+            "quantity": 1,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "solar": {
+            "quantity": 1,
+            "health": 0.2,
+            "enabled": true,
+            "upgrades": []
+          },
+          "habitat": {
+            "quantity": 1,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedPanels": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedBatteryBanks": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedAntenna": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          }
+        },
+        "flags": {}
+      },
+      "supplyPlatform": {
+        "ownerId": "player",
+        "areaId": "vicinity",
+        "resources": {
+          "power": 2,
+          "scrap": 0,
+          "electronicSalvage": 0,
+          "siliconMinerals": 0,
+          "iron": 0,
+          "conductiveParts": 0,
+          "electronicParts": 0,
+          "solarCells": 0,
+          "solarPanel": 0,
+          "batteryBank": 0,
+          "radioAntenna": 0
+        },
+        "infrastructure": {
+          "engine": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "fabricator": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "solar": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "habitat": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedPanels": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedBatteryBanks": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedAntenna": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          }
+        },
+        "flags": {}
+      },
+      "derelict": {
+        "ownerId": null,
+        "areaId": "outerReach",
+        "resources": {
+          "power": 0,
+          "scrap": 0,
+          "electronicSalvage": 0,
+          "siliconMinerals": 0,
+          "iron": 0,
+          "conductiveParts": 0,
+          "electronicParts": 0,
+          "solarCells": 0,
+          "solarPanel": 0,
+          "batteryBank": 0,
+          "radioAntenna": 0
+        },
+        "infrastructure": {
+          "engine": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "fabricator": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "solar": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "habitat": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedPanels": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedBatteryBanks": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedAntenna": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          }
+        },
+        "flags": {}
+      }
+    },
+    "npcs": {
+      "mira": {
+        "locationId": "habitat",
+        "inventory": {
+          "scrap": 4
+        },
+        "flags": {}
+      },
+      "oren": {
+        "locationId": "habitat",
+        "inventory": {},
+        "flags": {}
+      }
+    },
+    "dialogue": {
+      "nextSession": 1,
+      "active": null,
+      "met": {},
+      "history": {}
+    },
+    "crafting": {
+      "recipeId": null,
+      "ingredients": {}
+    },
+    "knowledge": {
+      "discoveries": {}
+    },
+    "flags": {}
+  },
+  "6": {
+    "saveVersion": 6,
+    "simulationTime": 42,
+    "locationId": "habitat",
+    "locations": {
+      "vicinity": {
+        "ownerId": null,
+        "areaId": null,
+        "resources": {
+          "power": 0,
+          "scrap": 0,
+          "electronicSalvage": 0,
+          "siliconMinerals": 0,
+          "iron": 0,
+          "conductiveParts": 0,
+          "electronicParts": 0,
+          "solarCells": 0,
+          "solarPanel": 0,
+          "batteryBank": 0,
+          "radioAntenna": 0
+        },
+        "infrastructure": {
+          "engine": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "fabricator": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "solar": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "habitat": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedPanels": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedBatteryBanks": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedAntenna": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          }
+        },
+        "flags": {}
+      },
+      "outerReach": {
+        "ownerId": null,
+        "areaId": null,
+        "resources": {
+          "power": 0,
+          "scrap": 0,
+          "electronicSalvage": 0,
+          "siliconMinerals": 0,
+          "iron": 0,
+          "conductiveParts": 0,
+          "electronicParts": 0,
+          "solarCells": 0,
+          "solarPanel": 0,
+          "batteryBank": 0,
+          "radioAntenna": 0
+        },
+        "infrastructure": {
+          "engine": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "fabricator": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "solar": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "habitat": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedPanels": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedBatteryBanks": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedAntenna": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          }
+        },
+        "flags": {}
+      },
+      "habitat": {
+        "ownerId": "player",
+        "areaId": "vicinity",
+        "resources": {
+          "power": 8,
+          "scrap": 7,
+          "electronicSalvage": 3,
+          "siliconMinerals": 2,
+          "iron": 2,
+          "conductiveParts": 0,
+          "electronicParts": 0,
+          "solarCells": 0,
+          "solarPanel": 0,
+          "batteryBank": 0,
+          "radioAntenna": 0
+        },
+        "infrastructure": {
+          "engine": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "fabricator": {
+            "quantity": 1,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "solar": {
+            "quantity": 1,
+            "health": 0.2,
+            "enabled": true,
+            "upgrades": []
+          },
+          "habitat": {
+            "quantity": 1,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedPanels": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedBatteryBanks": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedAntenna": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          }
+        },
+        "flags": {}
+      },
+      "supplyPlatform": {
+        "ownerId": "player",
+        "areaId": "vicinity",
+        "resources": {
+          "power": 2,
+          "scrap": 0,
+          "electronicSalvage": 0,
+          "siliconMinerals": 0,
+          "iron": 0,
+          "conductiveParts": 0,
+          "electronicParts": 0,
+          "solarCells": 0,
+          "solarPanel": 0,
+          "batteryBank": 0,
+          "radioAntenna": 0
+        },
+        "infrastructure": {
+          "engine": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "fabricator": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "solar": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "habitat": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedPanels": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedBatteryBanks": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedAntenna": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          }
+        },
+        "flags": {}
+      },
+      "derelict": {
+        "ownerId": null,
+        "areaId": "outerReach",
+        "resources": {
+          "power": 0,
+          "scrap": 0,
+          "electronicSalvage": 0,
+          "siliconMinerals": 0,
+          "iron": 0,
+          "conductiveParts": 0,
+          "electronicParts": 0,
+          "solarCells": 0,
+          "solarPanel": 0,
+          "batteryBank": 0,
+          "radioAntenna": 0
+        },
+        "infrastructure": {
+          "engine": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "fabricator": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "solar": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "habitat": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedPanels": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedBatteryBanks": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          },
+          "installedAntenna": {
+            "quantity": 0,
+            "health": 1,
+            "enabled": true,
+            "upgrades": []
+          }
+        },
+        "flags": {}
+      }
+    },
+    "npcs": {
+      "mira": {
+        "locationId": "habitat",
+        "inventory": {
+          "scrap": 4
+        },
+        "flags": {}
+      },
+      "oren": {
+        "locationId": "habitat",
+        "inventory": {},
+        "flags": {}
+      }
+    },
+    "dialogue": {
+      "nextSession": 1,
+      "active": null,
+      "met": {},
+      "history": {}
+    },
+    "crafting": {
+      "recipeId": null,
+      "ingredients": {}
+    },
+    "knowledge": {
+      "discoveries": {}
+    },
+    "flags": {},
+    "research": {
+      "rng": 129214749,
+      "insight": {},
+      "credits": {},
+      "contracts": {},
+      "exposure": {},
+      "attempts": [],
+      "attemptCount": 0,
+      "legacyKnowledge": false
+    }
+  }
+}
