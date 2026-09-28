@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>Power Flow Widget Demo</title>
+<style>
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #050807;
+    padding: 40px 16px;
+  }
+</style>
+</head>
+<body>
+  <div id="app"></div>
+
+  <script type="module">
+    import { PowerFlowWidget } from './power-flow-widget.js';
+
+    // Simulated live data source: a random walk that can go positive or
+    // negative and occasionally spikes, so both halves of the symlog
+    // axis (and the near-zero linear zone) get exercised.
+    let value = 5;
+    function nextValue() {
+      const drift = (Math.random() - 0.5) * value * 0.6;
+      const jump = Math.random() < 0.05 ? (Math.random() - 0.5) * 200 : 0;
+      value = value + drift + jump;
+      if (Math.random() < 0.02) value *= -1; // occasional sign flip
+      return value;
+    }
+
+    const widget = new PowerFlowWidget('#app', {
+      unit: 'U',
+      source: nextValue,
+    });
+    widget.start();
+
+    // expose for test harness
+    window.__widget = widget;
+  </script>
+</body>
+</html>
