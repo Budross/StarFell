@@ -1,6 +1,0 @@
-interface:
-  display_name: "SpaceGame Item Authoring"
-  short_description: "Author game items, recipes, and equipment content"
-  default_prompt: "Use $spacegame-item-authoring to add item and crafting content to this game, asking about missing gameplay decisions first."
-policy:
-  allow_implicit_invocation: true
