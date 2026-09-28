@@ -1,0 +1,232 @@
+TAP version 13
+# Subtest: a new action family links from production content before startup state validation
+ok 1 - a new action family links from production content before startup state validation
+  ---
+  duration_ms: 727.7512
+  type: 'test'
+  ...
+# Subtest: shared cargo displays exact decimals and transfers one quantum through reload
+ok 2 - shared cargo displays exact decimals and transfers one quantum through reload
+  ---
+  duration_ms: 645.8904
+  type: 'test'
+  ...
+# Subtest: discard previews, cancellation, confirmation and overload recovery at 1440px
+ok 3 - discard previews, cancellation, confirmation and overload recovery at 1440px
+  ---
+  duration_ms: 460.7662
+  type: 'test'
+  ...
+# Subtest: discard previews, cancellation, confirmation and overload recovery at 390px
+ok 4 - discard previews, cancellation, confirmation and overload recovery at 390px
+  ---
+  duration_ms: 459.7764
+  type: 'test'
+  ...
+# Subtest: discard save failure and a switch to private passenger inventory preserve cargo
+ok 5 - discard save failure and a switch to private passenger inventory preserve cargo
+  ---
+  duration_ms: 393.7889
+  type: 'test'
+  ...
+# Subtest: old save migration persists once and a failed migration write preserves the old save
+ok 6 - old save migration persists once and a failed migration write preserves the old save
+  ---
+  duration_ms: 403.5383
+  type: 'test'
+  ...
+# Subtest: startup, keyboard navigation, hidden controls, and presentation-only switching
+ok 7 - startup, keyboard navigation, hidden controls, and presentation-only switching
+  ---
+  duration_ms: 273.9802
+  type: 'test'
+  ...
+# Subtest: Workshop crafting, feedback, selections, commands, and reload
+ok 8 - Workshop crafting, feedback, selections, commands, and reload
+  ---
+  duration_ms: 686.1288
+  type: 'test'
+  ...
+# Subtest: hidden log receives messages, preserves reading position and follows the tail
+ok 9 - hidden log receives messages, preserves reading position and follows the tail
+  ---
+  duration_ms: 383.405
+  type: 'test'
+  ...
+# Subtest: a future third panel registers without controller changes, with validation and focus recovery
+ok 10 - a future third panel registers without controller changes, with validation and focus recovery
+  ---
+  duration_ms: 233.5446
+  type: 'test'
+  ...
+# Subtest: additional tabs scroll into view without moving the page
+ok 11 - additional tabs scroll into view without moving the page
+  ---
+  duration_ms: 209.4417
+  type: 'test'
+  ...
+# Subtest: simulation continues while Workshop is active
+ok 12 - simulation continues while Workshop is active
+  ---
+  duration_ms: 1169.3693
+  type: 'test'
+  ...
+# Subtest: responsive panels keep controls reachable and preserve Workshop scroll
+ok 13 - responsive panels keep controls reachable and preserve Workshop scroll
+  ---
+  duration_ms: 682.383
+  type: 'test'
+  ...
+# Subtest: malformed saves show the original failure and remain untouched
+ok 14 - malformed saves show the original failure and remain untouched
+  ---
+  duration_ms: 196.1291
+  type: 'test'
+  ...
+# Subtest: location browsing, selection and zoom are presentation-only; travel updates every local display
+ok 15 - location browsing, selection and zoom are presentation-only; travel updates every local display
+  ---
+  duration_ms: 2662.4316
+  type: 'test'
+  ...
+# Subtest: transfer form sends and receives cargo through saved actions
+ok 16 - transfer form sends and receives cargo through saved actions
+  ---
+  duration_ms: 335.9276
+  type: 'test'
+  ...
+# Subtest: failed travel preserves location, tab, tint, graph history and arrival log
+ok 17 - failed travel preserves location, tab, tint, graph history and arrival log
+  ---
+  duration_ms: 311.7775
+  type: 'test'
+  ...
+# Subtest: mousewheel zoom, unselected dominance and bounded local views
+ok 18 - mousewheel zoom, unselected dominance and bounded local views
+  ---
+  duration_ms: 859.5478
+  type: 'test'
+  ...
+# Subtest: ship area travel resumes after reload, pauses when hidden, and preserves aboard identity
+ok 19 - ship area travel resumes after reload, pauses when hidden, and preserves aboard identity
+  ---
+  duration_ms: 13656.9369
+  type: 'test'
+  ...
+# Subtest: unowned passenger ship navigation hides assets and clears previous crafting and transfer controls
+ok 20 - unowned passenger ship navigation hides assets and clears previous crafting and transfer controls
+  ---
+  duration_ms: 2460.5994
+  type: 'test'
+  ...
+# Subtest: failed arrival saving leaves the journey intact and does not announce docking
+ok 21 - failed arrival saving leaves the journey intact and does not announce docking
+  ---
+  duration_ms: 2396.6575
+  type: 'test'
+  ...
+# Subtest: touch, keyboard, narrow map layout and reduced-motion alternatives
+ok 22 - touch, keyboard, narrow map layout and reduced-motion alternatives
+  ---
+  duration_ms: 407.9006
+  type: 'test'
+  ...
+# Subtest: People browsing is presentation only; requests persist across tabs, inspection and reload
+ok 23 - People browsing is presentation only; requests persist across tabs, inspection and reload
+  ---
+  duration_ms: 541.3992
+  type: 'test'
+  ...
+# Subtest: dialogue failures preserve passage and terminal relocation leaves a readable farewell
+ok 24 - dialogue failures preserve passage and terminal relocation leaves a readable farewell
+  ---
+  duration_ms: 425.1504
+  type: 'test'
+  ...
+# Subtest: People mobile flow preserves conversation while browsing, ignores digit directives and maintains focus
+ok 25 - People mobile flow preserves conversation while browsing, ignores digit directives and maintains focus
+  ---
+  duration_ms: 588.4961
+  type: 'test'
+  ...
+# Subtest: ship arrival during dialogue keeps People selected and disembarking closes contact
+ok 26 - ship arrival during dialogue keeps People selected and disembarking closes contact
+  ---
+  duration_ms: 2443.8774
+  type: 'test'
+  ...
+# Subtest: current-version content recovery notifies and preserves NPC and request history
+ok 27 - current-version content recovery notifies and preserves NPC and request history
+  ---
+  duration_ms: 395.7487
+  type: 'test'
+  ...
+# Subtest: long dialogue and wrapping replies stay reachable without moving the reader on simulation updates
+ok 28 - long dialogue and wrapping replies stay reachable without moving the reader on simulation updates
+  ---
+  duration_ms: 663.334
+  type: 'test'
+  ...
+# Subtest: Research previews are read-only, experiments advance knowledge, and exhausted setups spend nothing
+ok 29 - Research previews are read-only, experiments advance knowledge, and exhausted setups spend nothing
+  ---
+  duration_ms: 499.1196
+  type: 'test'
+  ...
+# Subtest: Research save failures do not publish discoveries or consume the next random outcome
+ok 30 - Research save failures do not publish discoveries or consume the next random outcome
+  ---
+  duration_ms: 341.409
+  type: 'test'
+  ...
+# Subtest: Research clears samples on location changes and keeps passenger assets private
+ok 31 - Research clears samples on location changes and keeps passenger assets private
+  ---
+  duration_ms: 408.9722
+  type: 'test'
+  ...
+# Subtest: Mira's technical advice supplies a saved optional clue to research
+ok 32 - Mira's technical advice supplies a saved optional clue to research
+  ---
+  duration_ms: 427.185
+  type: 'test'
+  ...
+# Subtest: legacy research migration preserves former recipes and reports the compatibility grant
+ok 33 - legacy research migration preserves former recipes and reports the compatibility grant
+  ---
+  duration_ms: 316.9631
+  type: 'test'
+  ...
+# Subtest: Research keyboard controls, mobile layout and a long journal stay usable
+ok 34 - Research keyboard controls, mobile layout and a long journal stay usable
+  ---
+  duration_ms: 1548.0602
+  type: 'test'
+  ...
+# Subtest: new research evidence is available after reload without resetting existing progress
+ok 35 - new research evidence is available after reload without resetting existing progress
+  ---
+  duration_ms: 437.0143
+  type: 'test'
+  ...
+# Subtest: generated instances use browser rosters, map commands, scenes, and saved contact lifecycle
+ok 36 - generated instances use browser rosters, map commands, scenes, and saved contact lifecycle
+  ---
+  duration_ms: 757.4558
+  type: 'test'
+  ...
+# Subtest: generated research history and controller access render independently of title ownership
+ok 37 - generated research history and controller access render independently of title ownership
+  ---
+  duration_ms: 574.5624
+  type: 'test'
+  ...
+1..37
+# tests 37
+# suites 0
+# pass 37
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 40771.4857

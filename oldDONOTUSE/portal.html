@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1"
+  >
+
+  <title>Space Habitat</title>
+
+  <link rel="stylesheet" href="./portal.css">
+
+  <script
+    type="module"
+    src="./app.js"
+  ></script>
+</head>
+
+<body>
+  <main>
+    <h1>Habitat Operations</h1>
+
+    <section>
+      <h2>Resources</h2>
+
+      <p>
+        Power:
+        <span id="power-quantity">0</span>
+        /
+        <span id="power-capacity">0</span>
+      </p>
+
+      <p>
+        Power flow:
+        <span id="power-rate">0</span>
+        per second
+      </p>
+
+      <p>
+        Scrap:
+        <span id="scrap-quantity">0</span>
+        /
+        <span id="scrap-capacity">0</span>
+      </p>
+    </section>
+
+    <section>
+      <h2>Infrastructure</h2>
+
+      <p>
+        Solar array condition:
+        <span id="solar-health">0%</span>
+      </p>
+    </section>
+
+    <section>
+      <h2>Actions</h2>
+
+      <button
+        type="button"
+        data-action="salvage"
+      >
+        Salvage panels
+      </button>
+
+      <button
+        type="button"
+        data-action="repairSolar"
+        id="repair-solar-button"
+      >
+        Repair solar array
+      </button>
+    </section>
+
+    <p id="feedback" role="status">
+      Initializing habitat…
+    </p>
+  </main>
+</body>
+</html>

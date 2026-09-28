@@ -1,0 +1,19 @@
+✔ fresh ledger is composed for production, direct core and compatibility; v8 missing defaults only on load (12.239ms)
+✔ fresh lifecycle initialization is ordered, synchronous and isolated from reconciliation (3.4754ms)
+✔ append stamps deterministic IDs/time/defaults and isolates payload and query results (3.5941ms)
+✔ append rejects invalid facts without modifying the ledger (3.3542ms)
+✔ utility fractions are canonical while bulk and counted fractions are rejected (2.177ms)
+✔ FIFO retains newest provisional limit while historical validity permits pruning, gaps and empty windows (131.8777ms)
+✔ counter exhaustion, duplicate/reordered IDs, malformed arrays and invalid time fail without repair (5.6736ms)
+✔ historical content removal/kind changes remain valid on reload and subsequent save; append stays strict (3.9385ms)
+✔ historical validation needs no append capabilities and never requires present cargo or repair truth (2.4373ms)
+✔ queries filter predictable facts with inclusive time, exclusive cursor and detached involvement results (2.62ms)
+✔ persistent references outlive movement and retirement without blocking lifecycle transitions (6.8871ms)
+ℹ tests 11
+ℹ suites 0
+ℹ pass 11
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 313.0747

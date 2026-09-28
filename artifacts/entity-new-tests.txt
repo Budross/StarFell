@@ -1,0 +1,91 @@
+TAP version 13
+# Subtest: title, operational control, and administrative permissions remain separate
+ok 1 - title, operational control, and administrative permissions remain separate
+  ---
+  duration_ms: 21.8802
+  type: 'test'
+  ...
+# Subtest: explicit grants are operation-specific and ownership transfer revokes old delegation
+ok 2 - explicit grants are operation-specific and ownership transfer revokes old delegation
+  ---
+  duration_ms: 5.7187
+  type: 'test'
+  ...
+# Subtest: passenger navigation permits propulsion power but no private inventory or equipment access
+ok 3 - passenger navigation permits propulsion power but no private inventory or equipment access
+  ---
+  duration_ms: 7.0724
+  type: 'test'
+  ...
+# Subtest: permission changes between preview and execution are rechecked, including global actions
+ok 4 - permission changes between preview and execution are rechecked, including global actions
+  ---
+  duration_ms: 5.438
+  type: 'test'
+  ...
+# Subtest: authored identities and reusable definitions are distinct, with one canonical store and owner
+ok 5 - authored identities and reusable definitions are distinct, with one canonical store and owner
+  ---
+  duration_ms: 22.3973
+  type: 'test'
+  ...
+# Subtest: creation and ID allocation roll back on invalid bindings and failed saves without changing catalogs/actions
+ok 6 - creation and ID allocation roll back on invalid bindings and failed saves without changing catalogs/actions
+  ---
+  duration_ms: 6.0744
+  type: 'test'
+  ...
+# Subtest: batch creation binds actor and container identities before validating the final state
+ok 7 - batch creation binds actor and container identities before validating the final state
+  ---
+  duration_ms: 4.1175
+  type: 'test'
+  ...
+# Subtest: generated ships use normal target commands, scenes, maps, transfers, and reload
+ok 8 - generated ships use normal target commands, scenes, maps, transfers, and reload
+  ---
+  duration_ms: 12.3434
+  type: 'test'
+  ...
+# Subtest: generated NPCs use normal contact and independent encounter histories
+not ok 9 - generated NPCs use normal contact and independent encounter histories
+  ---
+  duration_ms: 4.6363
+  type: 'test'
+  location: 'C:\\Users\\Bud\\Documents\\SpaceGameText\\tests\\entities.test.mjs:64:1'
+  failureType: 'testCodeFailure'
+  error: 'The conversation has changed. Choose a current reply.'
+  code: 'ERR_TEST_FAILURE'
+  stack: |-
+    performDialogue (file:///C:/Users/Bud/Documents/SpaceGameText/js/dialogue.js:191:89)
+    Object.execute (file:///C:/Users/Bud/Documents/SpaceGameText/js/dialogueActions.js:6:44)
+    file:///C:/Users/Bud/Documents/SpaceGameText/js/playerActions.js:126:34
+    Object.applyAction (file:///C:/Users/Bud/Documents/SpaceGameText/js/runtime.js:16:19)
+    Object.executeAction (file:///C:/Users/Bud/Documents/SpaceGameText/js/playerActions.js:118:23)
+    TestContext.<anonymous> (file:///C:/Users/Bud/Documents/SpaceGameText/tests/entities.test.mjs:69:14)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+  ...
+# Subtest: an authorized ship can move without moving or being occupied by the player
+ok 10 - an authorized ship can move without moving or being occupied by the player
+  ---
+  duration_ms: 4.8438
+  type: 'test'
+  ...
+# Subtest: registry validation rejects collisions, dangling slices, incorrect types, and missing live definitions
+ok 11 - registry validation rejects collisions, dangling slices, incorrect types, and missing live definitions
+  ---
+  duration_ms: 4.5344
+  type: 'test'
+  ...
+1..11
+# tests 11
+# suites 0
+# pass 10
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 170.9107

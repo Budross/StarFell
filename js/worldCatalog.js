@@ -1,0 +1,12 @@
+import { content as defaultContent } from "./content.js";
+import { locationDefinitions } from "./locationContent.js";
+import { buildGameSystems } from "./bootstrap.js";
+
+// Standalone default consumers use the same complete composition as the app.
+// Keep production feature registration in bootstrap.js, not in this wrapper.
+export function compileWorld(content, source = locationDefinitions) {
+  return buildGameSystems({ content, locationSource: source }).world;
+}
+
+export const defaultWorld = compileWorld(defaultContent);
+export const worldFor = content => content === defaultContent ? defaultWorld : compileWorld(content);

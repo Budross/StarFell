@@ -1,0 +1,977 @@
+TAP version 13
+# Subtest: title, operational control, and administrative permissions remain separate
+ok 1 - title, operational control, and administrative permissions remain separate
+  ---
+  duration_ms: 33.9892
+  type: 'test'
+  ...
+# Subtest: explicit grants are operation-specific and ownership transfer revokes old delegation
+ok 2 - explicit grants are operation-specific and ownership transfer revokes old delegation
+  ---
+  duration_ms: 10.9714
+  type: 'test'
+  ...
+# Subtest: passenger navigation permits propulsion power but no private inventory or equipment access
+ok 3 - passenger navigation permits propulsion power but no private inventory or equipment access
+  ---
+  duration_ms: 10.8349
+  type: 'test'
+  ...
+# Subtest: permission changes between preview and execution are rechecked, including global actions
+ok 4 - permission changes between preview and execution are rechecked, including global actions
+  ---
+  duration_ms: 7.9351
+  type: 'test'
+  ...
+# Subtest: an NPC uses the same transfer rules with its own placement and authority
+ok 5 - an NPC uses the same transfer rules with its own placement and authority
+  ---
+  duration_ms: 9.0122
+  type: 'test'
+  ...
+# Subtest: loss of an owner preserves title and grants no automatic succession or claim
+ok 6 - loss of an owner preserves title and grants no automatic succession or claim
+  ---
+  duration_ms: 8.848
+  type: 'test'
+  ...
+# Subtest: passive storage is definition-driven, additive, and reads live installed counts
+ok 7 - passive storage is definition-driven, additive, and reads live installed counts
+  ---
+  duration_ms: 13.7436
+  type: 'test'
+  ...
+# Subtest: catalog rejects malformed storage bonuses
+ok 8 - catalog rejects malformed storage bonuses
+  ---
+  duration_ms: 4.5825
+  type: 'test'
+  ...
+# Subtest: definition-only additions generate gathering, alternate recipes, substitution, installation, and operations
+ok 9 - definition-only additions generate gathering, alternate recipes, substitution, installation, and operations
+  ---
+  duration_ms: 83.5729
+  type: 'test'
+  ...
+# Subtest: physical tags alone do not grant substitution; products cannot fill ingredient slots
+ok 10 - physical tags alone do not grant substitution; products cannot fill ingredient slots
+  ---
+  duration_ms: 8.2776
+  type: 'test'
+  ...
+# Subtest: recipe discovery and role discovery are independent
+ok 11 - recipe discovery and role discovery are independent
+  ---
+  duration_ms: 12.1232
+  type: 'test'
+  ...
+# Subtest: a new ingredient can restrict its own approved use to selected recipes
+ok 12 - a new ingredient can restrict its own approved use to selected recipes
+  ---
+  duration_ms: 7.4659
+  type: 'test'
+  ...
+# Subtest: ratios round upward and one inventory unit cannot satisfy multiple slots
+ok 13 - ratios round upward and one inventory unit cannot satisfy multiple slots
+  ---
+  duration_ms: 8.5345
+  type: 'test'
+  ...
+# Subtest: preview is read-only and an expanding recipe cannot overflow shared storage
+ok 14 - preview is read-only and an expanding recipe cannot overflow shared storage
+  ---
+  duration_ms: 2.356
+  type: 'test'
+  ...
+# Subtest: capacity uses inventory after input consumption
+ok 15 - capacity uses inventory after input consumption
+  ---
+  duration_ms: 6.2932
+  type: 'test'
+  ...
+# Subtest: catalog rejects category violations, bad quantities, references, and unknown behaviors
+ok 16 - catalog rejects category violations, bad quantities, references, and unknown behaviors
+  ---
+  duration_ms: 4.9044
+  type: 'test'
+  ...
+# Subtest: generated action collisions are caught before registration
+ok 17 - generated action collisions are caught before registration
+  ---
+  duration_ms: 0.7165
+  type: 'test'
+  ...
+# Subtest: version-one saves preserve progress and new catalog entries receive defaults
+ok 18 - version-one saves preserve progress and new catalog entries receive defaults
+  ---
+  duration_ms: 7.8483
+  type: 'test'
+  ...
+# Subtest: migration rejects corrupted values and unsupported versions without mutating the source
+ok 19 - migration rejects corrupted values and unsupported versions without mutating the source
+  ---
+  duration_ms: 1.2054
+  type: 'test'
+  ...
+# Subtest: with fabrication knowledge, both products and repair are reachable from depleted reserves
+ok 20 - with fabrication knowledge, both products and repair are reachable from depleted reserves
+  ---
+  duration_ms: 21.4253
+  type: 'test'
+  ...
+# Subtest: new panels preserve starting damage and generation is timestep independent
+ok 21 - new panels preserve starting damage and generation is timestep independent
+  ---
+  duration_ms: 2.1864
+  type: 'test'
+  ...
+# Subtest: new NPC content supplies groups without engine registration and has private independent inventory
+ok 22 - new NPC content supplies groups without engine registration and has private independent inventory
+  ---
+  duration_ms: 10.7748
+  type: 'test'
+  ...
+# Subtest: local contact requires exact site and no site ownership
+ok 23 - local contact requires exact site and no site ownership
+  ---
+  duration_ms: 2.5495
+  type: 'test'
+  ...
+# Subtest: shared greetings remember each NPC separately and groups deduplicate
+ok 24 - shared greetings remember each NPC separately and groups deduplicate
+  ---
+  duration_ms: 7.0133
+  type: 'test'
+  ...
+# Subtest: acceptance does not invalidate active branch; remote generated flag unlocks report and lasting outcomes
+ok 25 - acceptance does not invalidate active branch; remote generated flag unlocks report and lasting outcomes
+  ---
+  duration_ms: 8.5413
+  type: 'test'
+  ...
+# Subtest: declining has lasting consequences without accepting or granting items
+ok 26 - declining has lasting consequences without accepting or granting items
+  ---
+  duration_ms: 5.3212
+  type: 'test'
+  ...
+# Subtest: terminal relocation has a visible farewell, no lost next node and complete rollback on failed save
+ok 27 - terminal relocation has a visible farewell, no lost next node and complete rollback on failed save
+  ---
+  duration_ms: 10.3171
+  type: 'test'
+  ...
+# Subtest: relocating speaker through shared or explicit binding cannot have a destination node
+ok 28 - relocating speaker through shared or explicit binding cannot have a destination node
+  ---
+  duration_ms: 2.2495
+  type: 'test'
+  ...
+# Subtest: presence derives from flags; indirect disappearance closes without showing the next passage
+ok 29 - presence derives from flags; indirect disappearance closes without showing the next passage
+  ---
+  duration_ms: 3.7827
+  type: 'test'
+  ...
+# Subtest: stale choice token including a loop to the same node cannot execute twice
+ok 30 - stale choice token including a loop to the same node cannot execute twice
+  ---
+  duration_ms: 5.2605
+  type: 'test'
+  ...
+# Subtest: live hidden and blocked choices reject direct execution; empty nodes still allow leave
+ok 31 - live hidden and blocked choices reject direct execution; empty nodes still allow leave
+  ---
+  duration_ms: 5.1513
+  type: 'test'
+  ...
+# Subtest: compound checks, colon keys, targeting, and blocked explanations validate
+ok 32 - compound checks, colon keys, targeting, and blocked explanations validate
+  ---
+  duration_ms: 3.1617
+  type: 'test'
+  ...
+# Subtest: priority only competes within topic; blocked winner does not fall through; explanation remains available to authors
+ok 33 - priority only competes within topic; blocked winner does not fall through; explanation remains available to authors
+  ---
+  duration_ms: 2.4642
+  type: 'test'
+  ...
+# Subtest: global and NPC-location histories use the declared scope
+ok 34 - global and NPC-location histories use the declared scope
+  ---
+  duration_ms: 6.0233
+  type: 'test'
+  ...
+# Subtest: version-four migration and current-version NPC additions initialize once and preserve inventory
+ok 35 - version-four migration and current-version NPC additions initialize once and preserve inventory
+  ---
+  duration_ms: 7.6057
+  type: 'test'
+  ...
+# Subtest: retired active nodes or assignments recover every load without wiping history; malformed records do not
+ok 36 - retired active nodes or assignments recover every load without wiping history; malformed records do not
+  ---
+  duration_ms: 12.8077
+  type: 'test'
+  ...
+# Subtest: ship passengers retain local dialogue through arrival, then disembarking breaks contact
+ok 37 - ship passengers retain local dialogue through arrival, then disembarking breaks contact
+  ---
+  duration_ms: 6.686
+  type: 'test'
+  ...
+# Subtest: catalog rejects broken references, effects, inventory and unsupported authoring
+ok 38 - catalog rejects broken references, effects, inventory and unsupported authoring
+  ---
+  duration_ms: 2.8488
+  type: 'test'
+  ...
+# Subtest: authored identities and reusable definitions are distinct, with one canonical store and owner
+ok 39 - authored identities and reusable definitions are distinct, with one canonical store and owner
+  ---
+  duration_ms: 35.5745
+  type: 'test'
+  ...
+# Subtest: creation and ID allocation roll back on invalid bindings and failed saves without changing catalogs/actions
+ok 40 - creation and ID allocation roll back on invalid bindings and failed saves without changing catalogs/actions
+  ---
+  duration_ms: 9.272
+  type: 'test'
+  ...
+# Subtest: batch creation binds actor and container identities before validating the final state
+ok 41 - batch creation binds actor and container identities before validating the final state
+  ---
+  duration_ms: 5.2956
+  type: 'test'
+  ...
+# Subtest: generated ships use normal target commands, scenes, maps, transfers, and reload
+ok 42 - generated ships use normal target commands, scenes, maps, transfers, and reload
+  ---
+  duration_ms: 21.3867
+  type: 'test'
+  ...
+# Subtest: generated NPCs use normal contact and independent encounter histories
+ok 43 - generated NPCs use normal contact and independent encounter histories
+  ---
+  duration_ms: 8.2589
+  type: 'test'
+  ...
+# Subtest: an authorized ship can move without moving or being occupied by the player
+ok 44 - an authorized ship can move without moving or being occupied by the player
+  ---
+  duration_ms: 6.5148
+  type: 'test'
+  ...
+# Subtest: registry validation rejects collisions, dangling slices, incorrect types, and missing live definitions
+ok 45 - registry validation rejects collisions, dangling slices, incorrect types, and missing live definitions
+  ---
+  duration_ms: 7.9673
+  type: 'test'
+  ...
+# Subtest: creation rejects incompatible fields and overloaded initial cargo, while saved overload remains valid
+ok 46 - creation rejects incompatible fields and overloaded initial cargo, while saved overload remains valid
+  ---
+  duration_ms: 7.7622
+  type: 'test'
+  ...
+# Subtest: runtime target payloads are order-independent and remote scene status is safely unavailable
+ok 47 - runtime target payloads are order-independent and remote scene status is safely unavailable
+  ---
+  duration_ms: 6.0152
+  type: 'test'
+  ...
+# Subtest: retirement closes contact, retains history/identity, freezes domain state, and cannot reactivate
+ok 48 - retirement closes contact, retains history/identity, freezes domain state, and cannot reactivate
+  ---
+  duration_ms: 39.8723
+  type: 'test'
+  ...
+# Subtest: occupied, docked-at, and journey-target locations return specific blockers
+ok 49 - occupied, docked-at, and journey-target locations return specific blockers
+  ---
+  duration_ms: 12.2433
+  type: 'test'
+  ...
+# Subtest: explicit resolutions and lifecycle/contact changes roll back together on save failure
+ok 50 - explicit resolutions and lifecycle/contact changes roll back together on save failure
+  ---
+  duration_ms: 13.4717
+  type: 'test'
+  ...
+# Subtest: inactive instances suspend production, remain persistent, and reactivate explicitly
+ok 51 - inactive instances suspend production, remain persistent, and reactivate explicitly
+  ---
+  duration_ms: 11.8046
+  type: 'test'
+  ...
+# Subtest: history at a retired generated site resolves after its definition is removed
+ok 52 - history at a retired generated site resolves after its definition is removed
+  ---
+  duration_ms: 10.0774
+  type: 'test'
+  ...
+# Subtest: a stale transition preview cannot authorize a now-occupied entity
+ok 53 - a stale transition preview cannot authorize a now-occupied entity
+  ---
+  duration_ms: 6.0682
+  type: 'test'
+  ...
+# Subtest: the complete generated actor lifecycle uses the production bootstrap, runtime, and commands
+ok 54 - the complete generated actor lifecycle uses the production bootstrap, runtime, and commands
+  ---
+  duration_ms: 13.5506
+  type: 'test'
+  ...
+# Subtest: an explicitly composed domain collector participates in validation and lifecycle without registry schema changes
+ok 55 - an explicitly composed domain collector participates in validation and lifecycle without registry schema changes
+  ---
+  duration_ms: 7.9486
+  type: 'test'
+  ...
+# Subtest: version seven migrates authority once, preserving assets, history, and independent RNG
+ok 56 - version seven migrates authority once, preserving assets, history, and independent RNG
+  ---
+  duration_ms: 33.0355
+  type: 'test'
+  ...
+# Subtest: unknown legacy title owners become inert identities, never guessed factions or public assets
+ok 57 - unknown legacy title owners become inert identities, never guessed factions or public assets
+  ---
+  duration_ms: 8.4221
+  type: 'test'
+  ...
+# Subtest: legacy historical-only references receive retained identities while malformed/live references still fail
+ok 58 - legacy historical-only references receive retained identities while malformed/live references still fail
+  ---
+  duration_ms: 7.0243
+  type: 'test'
+  ...
+# Subtest: current saves reject missing/orphan state and do not resurrect terminal authored entities
+ok 59 - current saves reject missing/orphan state and do not resurrect terminal authored entities
+  ---
+  duration_ms: 8.4781
+  type: 'test'
+  ...
+# Subtest: missing live definitions, invalid allocator state, and mixed ownership fail without mutating saves
+ok 60 - missing live definitions, invalid allocator state, and mixed ownership fail without mutating saves
+  ---
+  duration_ms: 8.9908
+  type: 'test'
+  ...
+# Subtest: legacy identity strings in the generated namespace reserve their sequence permanently
+ok 61 - legacy identity strings in the generated namespace reserve their sequence permanently
+  ---
+  duration_ms: 4.0163
+  type: 'test'
+  ...
+# Subtest: a fresh game reaches battery storage through research and renewable local materials
+ok 62 - a fresh game reaches battery storage through research and renewable local materials
+  ---
+  duration_ms: 46.9604
+  type: 'test'
+  ...
+# Subtest: battery banks craft and install through local transactions, then store and spend surplus power
+ok 63 - battery banks craft and install through local transactions, then store and spend surplus power
+  ---
+  duration_ms: 12.5064
+  type: 'test'
+  ...
+# Subtest: battery storage respects location overrides, ownership, and transfer limits
+ok 64 - battery storage respects location overrides, ownership, and transfer limits
+  ---
+  duration_ms: 5.4248
+  type: 'test'
+  ...
+# Subtest: pre-battery saves gain empty inventory and installations without changing progress
+ok 65 - pre-battery saves gain empty inventory and installations without changing progress
+  ---
+  duration_ms: 9.3498
+  type: 'test'
+  ...
+# Subtest: distance connects areas inclusively; direct player travel is retired
+ok 66 - distance connects areas inclusively; direct player travel is retired
+  ---
+  duration_ms: 5.9449
+  type: 'test'
+  ...
+# Subtest: definition-only sites, deterministic template merging and independent mutable assets
+ok 67 - definition-only sites, deterministic template merging and independent mutable assets
+  ---
+  duration_ms: 4.0918
+  type: 'test'
+  ...
+# Subtest: unknown definitions, references, capacities and command conflicts fail at startup
+ok 68 - unknown definitions, references, capacities and command conflicts fail at startup
+  ---
+  duration_ms: 6.5196
+  type: 'test'
+  ...
+# Subtest: shared actions and scoped commands use fresh local assets and cannot act remotely
+ok 69 - shared actions and scoped commands use fresh local assets and cannot act remotely
+  ---
+  duration_ms: 5.3345
+  type: 'test'
+  ...
+# Subtest: ownership and operational local fabrication are checked by previews and execution
+ok 70 - ownership and operational local fabrication are checked by previews and execution
+  ---
+  duration_ms: 3.6723
+  type: 'test'
+  ...
+# Subtest: installation, repair and local completion stay local; legacy radio flag stays global
+ok 71 - installation, repair and local completion stay local; legacy radio flag stays global
+  ---
+  duration_ms: 4.9635
+  type: 'test'
+  ...
+# Subtest: explicit local item-operation flags do not complete operations elsewhere
+ok 72 - explicit local item-operation flags do not complete operations elsewhere
+  ---
+  duration_ms: 4.6386
+  type: 'test'
+  ...
+# Subtest: power advances independently at every location with only one world-clock increment
+ok 73 - power advances independently at every location with only one world-clock increment
+  ---
+  duration_ms: 1.1673
+  type: 'test'
+  ...
+# Subtest: transfers conserve items and fractional power, support receiving, and recheck live state
+ok 74 - transfers conserve items and fractional power, support receiving, and recheck live state
+  ---
+  duration_ms: 6.2975
+  type: 'test'
+  ...
+# Subtest: invalid transfers never partially debit either endpoint
+ok 75 - invalid transfers never partially debit either endpoint
+  ---
+  duration_ms: 8.072
+  type: 'test'
+  ...
+# Subtest: failed saves roll back travel and both transfer endpoints
+ok 76 - failed saves roll back travel and both transfer endpoints
+  ---
+  duration_ms: 3.7638
+  type: 'test'
+  ...
+# Subtest: discovery and travel access differ; graph views are read-only and use saved ship areas
+ok 77 - discovery and travel access differ; graph views are read-only and use saved ship areas
+  ---
+  duration_ms: 4.5774
+  type: 'test'
+  ...
+# Subtest: legacy migration preserves progress once; later additions do not replay starting grants
+ok 78 - legacy migration preserves progress once; later additions do not replay starting grants
+  ---
+  duration_ms: 8.6218
+  type: 'test'
+  ...
+# Subtest: definitions register before initialization, but cannot execute yet
+ok 79 - definitions register before initialization, but cannot execute yet
+  ---
+  duration_ms: 9.1792
+  type: 'test'
+  ...
+# Subtest: starting directives preserve shortcuts and include generated gathering
+ok 80 - starting directives preserve shortcuts and include generated gathering
+  ---
+  duration_ms: 5.2241
+  type: 'test'
+  ...
+# Subtest: registered IDs, names, aliases, and fixed shortcuts resolve
+ok 81 - registered IDs, names, aliases, and fixed shortcuts resolve
+  ---
+  duration_ms: 2.3564
+  type: 'test'
+  ...
+# Subtest: a fresh opening preserves refine and repair commands but explains their knowledge gates
+ok 82 - a fresh opening preserves refine and repair commands but explains their knowledge gates
+  ---
+  duration_ms: 3.1905
+  type: 'test'
+  ...
+# Subtest: salvage and refine update current state after replacement
+ok 83 - salvage and refine update current state after replacement
+  ---
+  duration_ms: 5.4587
+  type: 'test'
+  ...
+# Subtest: requirements are rechecked against current state
+ok 84 - requirements are rechecked against current state
+  ---
+  duration_ms: 1.2355
+  type: 'test'
+  ...
+# Subtest: repair uses components and completed commands cannot run again
+ok 85 - repair uses components and completed commands cannot run again
+  ---
+  duration_ms: 1.8706
+  type: 'test'
+  ...
+# Subtest: full storage blocks transfers without losing resources
+ok 86 - full storage blocks transfers without losing resources
+  ---
+  duration_ms: 1.5252
+  type: 'test'
+  ...
+# Subtest: save failure rolls back crafting, installation, operations, and selections
+ok 87 - save failure rolls back crafting, installation, operations, and selections
+  ---
+  duration_ms: 3.9623
+  type: 'test'
+  ...
+# Subtest: draft selection and crafting share the registry transaction
+ok 88 - draft selection and crafting share the registry transaction
+  ---
+  duration_ms: 7.3481
+  type: 'test'
+  ...
+# Subtest: a later action can use saved flags
+ok 89 - a later action can use saved flags
+  ---
+  duration_ms: 1.7967
+  type: 'test'
+  ...
+# Subtest: duplicate IDs and conflicting commands are rejected
+ok 90 - duplicate IDs and conflicting commands are rejected
+  ---
+  duration_ms: 1.3627
+  type: 'test'
+  ...
+# Subtest: failed or invalid action effects never reach current state
+ok 91 - failed or invalid action effects never reach current state
+  ---
+  duration_ms: 1.8066
+  type: 'test'
+  ...
+# Subtest: production runtime saves before commit and rolls back failed execution and validation
+ok 92 - production runtime saves before commit and rolls back failed execution and validation
+  ---
+  duration_ms: 13.3093
+  type: 'test'
+  ...
+# Subtest: production action save failure rolls back research costs, evidence, journal and RNG
+ok 93 - production action save failure rolls back research costs, evidence, journal and RNG
+  ---
+  duration_ms: 10.8071
+  type: 'test'
+  ...
+# Subtest: frame cadence, save failure pause and successful-action recovery use the production runtime
+ok 94 - frame cadence, save failure pause and successful-action recovery use the production runtime
+  ---
+  duration_ms: 7.9027
+  type: 'test'
+  ...
+# Subtest: an arrival saves immediately and a failed arrival retains the journey
+ok 95 - an arrival saves immediately and a failed arrival retains the journey
+  ---
+  duration_ms: 11.7714
+  type: 'test'
+  ...
+# Subtest: contact reconciliation is part of the saved action, before its result is returned
+ok 96 - contact reconciliation is part of the saved action, before its result is returned
+  ---
+  duration_ms: 5.8678
+  type: 'test'
+  ...
+# Subtest: new action families use normal location collections and retain collision checks
+ok 97 - new action families use normal location collections and retain collision checks
+  ---
+  duration_ms: 6.4968
+  type: 'test'
+  ...
+# Subtest: independent registries execute against their own current state
+ok 98 - independent registries execute against their own current state
+  ---
+  duration_ms: 10.5317
+  type: 'test'
+  ...
+# Subtest: explicit stores keep selection replacement at root and equipment capacity live
+ok 99 - explicit stores keep selection replacement at root and equipment capacity live
+  ---
+  duration_ms: 5.2124
+  type: 'test'
+  ...
+# Subtest: shared exchange and cross-store operations reject without partial arithmetic
+ok 100 - shared exchange and cross-store operations reject without partial arithmetic
+  ---
+  duration_ms: 6.7388
+  type: 'test'
+  ...
+# Subtest: research presentation inputs are detached from the clock and hide private stocks
+ok 101 - research presentation inputs are detached from the clock and hide private stocks
+  ---
+  duration_ms: 4.8867
+  type: 'test'
+  ...
+# Subtest: refactored composition preserves version-six round trips and old-save migration
+ok 102 - refactored composition preserves version-six round trips and old-save migration
+  ---
+  duration_ms: 8.3576
+  type: 'test'
+  ...
+# Subtest: discovery references retain external IDs without treating requirements as grant routes
+ok 103 - discovery references retain external IDs without treating requirements as grant routes
+  ---
+  duration_ms: 5.9669
+  type: 'test'
+  ...
+# Subtest: authored startup notices preserve fresh, knowledgeable, repaired and remote openings
+ok 104 - authored startup notices preserve fresh, knowledgeable, repaired and remote openings
+  ---
+  duration_ms: 2.716
+  type: 'test'
+  ...
+# Subtest: catalog rejects malformed mechanics, predicates, tags, references and duplicate variants
+ok 105 - catalog rejects malformed mechanics, predicates, tags, references and duplicate variants
+  ---
+  duration_ms: 7.1664
+  type: 'test'
+  ...
+# Subtest: resolver is pure, seeded and always gives bounded positive progress
+ok 106 - resolver is pure, seeded and always gives bounded positive progress
+  ---
+  duration_ms: 14.803
+  type: 'test'
+  ...
+# Subtest: catalog insertion order cannot change outcomes and context is detached from game state
+ok 107 - catalog insertion order cannot change outcomes and context is detached from game state
+  ---
+  duration_ms: 4.0793
+  type: 'test'
+  ...
+# Subtest: one experiment advances several candidates but never cascades new eligibility
+ok 108 - one experiment advances several candidates but never cascades new eligibility
+  ---
+  duration_ms: 5.2576
+  type: 'test'
+  ...
+# Subtest: repetition counts meaningful evidence, not reordered, padded or equivalent samples
+ok 109 - repetition counts meaningful evidence, not reordered, padded or equivalent samples
+  ---
+  duration_ms: 3.349
+  type: 'test'
+  ...
+# Subtest: relevant capability variants expose fresh evidence, and toggling never restores old credit
+ok 110 - relevant capability variants expose fresh evidence, and toggling never restores old credit
+  ---
+  duration_ms: 6.0625
+  type: 'test'
+  ...
+# Subtest: distinct sample requirements allocate physical units rather than counting tags twice
+ok 111 - distinct sample requirements allocate physical units rather than counting tags twice
+  ---
+  duration_ms: 0.4165
+  type: 'test'
+  ...
+# Subtest: clues learned before eligibility award once, and external discovery grants stay authoritative
+ok 112 - clues learned before eligibility award once, and external discovery grants stay authoritative
+  ---
+  duration_ms: 3.1377
+  type: 'test'
+  ...
+# Subtest: payload validation and preview never consume resources, progress or randomness
+ok 113 - payload validation and preview never consume resources, progress or randomness
+  ---
+  duration_ms: 3.8254
+  type: 'test'
+  ...
+# Subtest: research is local, respects ownership and operational equipment, and supports equipped ships
+ok 114 - research is local, respects ownership and operational equipment, and supports equipped ships
+  ---
+  duration_ms: 6.8235
+  type: 'test'
+  ...
+# Subtest: method power costs are checked separately from sample consumption
+ok 115 - method power costs are checked separately from sample consumption
+  ---
+  duration_ms: 1.4244
+  type: 'test'
+  ...
+# Subtest: failed saves roll back payment, discoveries, journal, evidence and the random stream
+ok 116 - failed saves roll back payment, discoveries, journal, evidence and the random stream
+  ---
+  duration_ms: 6.9616
+  type: 'test'
+  ...
+# Subtest: all opening recipes and recovery are reachable with zero power and no lucky bonuses
+ok 117 - all opening recipes and recovery are reachable with zero power and no lucky bonuses
+  ---
+  duration_ms: 57.7004
+  type: 'test'
+  ...
+# Opening route peak cargo: 0.285 m³ of 10 m³.
+# Subtest: optional inspection and conversation routes reach photovoltaic knowledge without semiconductor discovery
+ok 118 - optional inspection and conversation routes reach photovoltaic knowledge without semiconductor discovery
+  ---
+  duration_ms: 3.2426
+  type: 'test'
+  ...
+# Subtest: version-five migration preserves assets and gives legacy knowledge exactly once
+ok 119 - version-five migration preserves assets and gives legacy knowledge exactly once
+  ---
+  duration_ms: 3.5637
+  type: 'test'
+  ...
+# Subtest: content additions and text edits preserve progress; removed or rebalanced evidence fails safely
+ok 120 - content additions and text edits preserve progress; removed or rebalanced evidence fails safely
+  ---
+  duration_ms: 2.1825
+  type: 'test'
+  ...
+# Subtest: journal compaction keeps lifetime evidence and validates malformed saves without mutating them
+ok 121 - journal compaction keeps lifetime evidence and validates malformed saves without mutating them
+  ---
+  duration_ms: 65.3903
+  type: 'test'
+  ...
+# Subtest: adding evidence, methods and instrument variants preserves old credit without migration code
+ok 122 - adding evidence, methods and instrument variants preserves old credit without migration code
+  ---
+  duration_ms: 2.8871
+  type: 'test'
+  ...
+# Subtest: definition-only additions can grant an alternative crafting role and use a new equipment capability
+ok 123 - definition-only additions can grant an alternative crafting role and use a new equipment capability
+  ---
+  duration_ms: 3.6321
+  type: 'test'
+  ...
+# Subtest: fresh production games add no ship; static sites cannot travel even with engines
+ok 124 - fresh production games add no ship; static sites cannot travel even with engines
+  ---
+  duration_ms: 13.0283
+  type: 'test'
+  ...
+# Subtest: boarding requires exact docking site, discovery and access, but not ownership
+ok 125 - boarding requires exact docking site, discovery and access, but not ownership
+  ---
+  duration_ms: 6.8563
+  type: 'test'
+  ...
+# Subtest: passenger navigation spends only ship power and grants no management access
+ok 126 - passenger navigation spends only ship power and grants no management access
+  ---
+  duration_ms: 15.9275
+  type: 'test'
+  ...
+# Subtest: same-area journey preserves ship assets and location ID until disembarking
+ok 127 - same-area journey preserves ship assets and location ID until disembarking
+  ---
+  duration_ms: 10.3072
+  type: 'test'
+  ...
+# Subtest: round trip uses one area edge at a time and only changes position on arrival
+ok 128 - round trip uses one area edge at a time and only changes position on arrival
+  ---
+  duration_ms: 21.9099
+  type: 'test'
+  ...
+# Subtest: route checks block locked, unknown, nonadjacent, mobile and wrong-area targets
+ok 129 - route checks block locked, unknown, nonadjacent, mobile and wrong-area targets
+  ---
+  duration_ms: 8.1822
+  type: 'test'
+  ...
+# Subtest: engines and exact power are rechecked and movement failures never debit
+ok 130 - engines and exact power are rechecked and movement failures never debit
+  ---
+  duration_ms: 5.9379
+  type: 'test'
+  ...
+# Subtest: engine condition, quantities, ship speed and equipment upgrades change future durations
+ok 131 - engine condition, quantities, ship speed and equipment upgrades change future durations
+  ---
+  duration_ms: 7.9159
+  type: 'test'
+  ...
+# Subtest: departure, boarding and arrival save failures roll back every affected field
+ok 132 - departure, boarding and arrival save failures roll back every affected field
+  ---
+  duration_ms: 8.8434
+  type: 'test'
+  ...
+# Subtest: active journeys save remaining visible time and resume without offline progress
+ok 133 - active journeys save remaining visible time and resume without offline progress
+  ---
+  duration_ms: 8.7884
+  type: 'test'
+  ...
+# Subtest: transfers block in transit and recheck changed areas on arrival
+ok 134 - transfers block in transit and recheck changed areas on arrival
+  ---
+  duration_ms: 4.102
+  type: 'test'
+  ...
+# Subtest: map browsing is read-only, docking links are real, and ship follows saved position
+ok 135 - map browsing is read-only, docking links are real, and ship follows saved position
+  ---
+  duration_ms: 5.6731
+  type: 'test'
+  ...
+# Subtest: version-three area and ship saves migrate once without grants or replenishment
+ok 136 - version-three area and ship saves migrate once without grants or replenishment
+  ---
+  duration_ms: 6.1718
+  type: 'test'
+  ...
+# Subtest: invalid docking, journeys, area occupancy and unsupported ship metadata fail clearly
+ok 137 - invalid docking, journeys, area occupancy and unsupported ship metadata fail clearly
+  ---
+  duration_ms: 8.5498
+  type: 'test'
+  ...
+# Subtest: one content entry adds a different ship to an existing save without resetting others
+ok 138 - one content entry adds a different ship to an existing save without resetting others
+  ---
+  duration_ms: 3.8943
+  type: 'test'
+  ...
+# Subtest: decimal volume parsing and display preserve every quantum through the safe range
+ok 139 - decimal volume parsing and display preserve every quantum through the safe range
+  ---
+  duration_ms: 1.4919
+  type: 'test'
+  ...
+# Subtest: mixed physical items share capacity, power is excluded, exact fit succeeds
+ok 140 - mixed physical items share capacity, power is excluded, exact fit succeeds
+  ---
+  duration_ms: 11.0428
+  type: 'test'
+  ...
+# Subtest: complete exchanges neither clip multi-rewards nor fund inputs with outputs
+ok 141 - complete exchanges neither clip multi-rewards nor fund inputs with outputs
+  ---
+  duration_ms: 5.0715
+  type: 'test'
+  ...
+# Subtest: invalid arithmetic and quantity maps never mutate stores
+ok 142 - invalid arithmetic and quantity maps never mutate stores
+  ---
+  duration_ms: 3.8919
+  type: 'test'
+  ...
+# Subtest: overloaded saves allow shrinking and equal-volume exchanges but reject expansion
+ok 143 - overloaded saves allow shrinking and equal-volume exchanges but reject expansion
+  ---
+  duration_ms: 4.8879
+  type: 'test'
+  ...
+# Subtest: receivable item counts floor, transfers conserve bulk units and reject aliases
+ok 144 - receivable item counts floor, transfers conserve bulk units and reject aliases
+  ---
+  duration_ms: 14.2736
+  type: 'test'
+  ...
+# Subtest: bulk roles round upward exactly and aggregate repeated slots
+ok 145 - bulk roles round upward exactly and aggregate repeated slots
+  ---
+  duration_ms: 5.214
+  type: 'test'
+  ...
+# Subtest: capacity metadata rejects obsolete fields and invalid fresh loads
+ok 146 - capacity metadata rejects obsolete fields and invalid fresh loads
+  ---
+  duration_ms: 6.8386
+  type: 'test'
+  ...
+# Subtest: installed expansion is passive, live, and checked together with product consumption
+ok 147 - installed expansion is passive, live, and checked together with product consumption
+  ---
+  duration_ms: 3.8335
+  type: 'test'
+  ...
+# Subtest: research sample threshold and preview use exact bulk quantities
+ok 148 - research sample threshold and preview use exact bulk quantities
+  ---
+  duration_ms: 4.9795
+  type: 'test'
+  ...
+# Subtest: confirmed discard recovers unusable products and save failures roll back
+ok 149 - confirmed discard recovers unusable products and save failures roll back
+  ---
+  duration_ms: 7.1078
+  type: 'test'
+  ...
+# Subtest: new catalog items do not add capacity and endpoint policy precedes quantity diagnostics
+ok 150 - new catalog items do not add capacity and endpoint policy precedes quantity diagnostics
+  ---
+  duration_ms: 2.2093
+  type: 'test'
+  ...
+# Subtest: an isolated overloaded ship can travel and discard while ordinary transfers stay blocked
+ok 151 - an isolated overloaded ship can travel and discard while ordinary transfers stay blocked
+  ---
+  duration_ms: 6.164
+  type: 'test'
+  ...
+# Subtest: literal version 1 inventory migrates once and preserves its source
+ok 152 - literal version 1 inventory migrates once and preserves its source
+  ---
+  duration_ms: 6.7569
+  type: 'test'
+  ...
+# Subtest: literal version 2 inventory migrates once and preserves its source
+ok 153 - literal version 2 inventory migrates once and preserves its source
+  ---
+  duration_ms: 2.6591
+  type: 'test'
+  ...
+# Subtest: literal version 3 inventory migrates once and preserves its source
+ok 154 - literal version 3 inventory migrates once and preserves its source
+  ---
+  duration_ms: 3.8098
+  type: 'test'
+  ...
+# Subtest: literal version 4 inventory migrates once and preserves its source
+ok 155 - literal version 4 inventory migrates once and preserves its source
+  ---
+  duration_ms: 1.7649
+  type: 'test'
+  ...
+# Subtest: literal version 5 inventory migrates once and preserves its source
+ok 156 - literal version 5 inventory migrates once and preserves its source
+  ---
+  duration_ms: 2.7633
+  type: 'test'
+  ...
+# Subtest: literal version 6 inventory migrates once and preserves its source
+ok 157 - literal version 6 inventory migrates once and preserves its source
+  ---
+  duration_ms: 3.3164
+  type: 'test'
+  ...
+# Subtest: new sites, NPCs, and items initialize in new units exactly once
+ok 158 - new sites, NPCs, and items initialize in new units exactly once
+  ---
+  duration_ms: 14.0964
+  type: 'test'
+  ...
+# Subtest: full historical caps migrate to valid cargo without loss
+ok 159 - full historical caps migrate to valid cargo without loss
+  ---
+  duration_ms: 1.4392
+  type: 'test'
+  ...
+# Subtest: invalid legacy quantities, removed IDs and unknown conversion metadata fail without mutation
+ok 160 - invalid legacy quantities, removed IDs and unknown conversion metadata fail without mutation
+  ---
+  duration_ms: 7.4823
+  type: 'test'
+  ...
+# Subtest: migration preserves active ship journeys, journal/RNG, and equipment
+ok 161 - migration preserves active ship journeys, journal/RNG, and equipment
+  ---
+  duration_ms: 6.7157
+  type: 'test'
+  ...
+1..161
+# tests 161
+# suites 0
+# pass 161
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 473.7105

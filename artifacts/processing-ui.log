@@ -1,0 +1,11 @@
+✔ Processing UI explains no-power rejection and preserves loaded stock and IDs (860.0798ms)
+✔ Processing UI loads, stages, reviews loss and unloads disabled equipment at 1440px (1004.9313ms)
+✔ Processing UI loads, stages, reviews loss and unloads disabled equipment at 390px (742.822ms)
+ℹ tests 3
+ℹ suites 0
+ℹ pass 3
+ℹ fail 0
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 3046.873

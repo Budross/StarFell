@@ -1,0 +1,35 @@
+body {
+  margin: 0;
+  padding: 2rem;
+  background: #171d20;
+  color: #e3eadc;
+  font-family: monospace;
+}
+
+main {
+  max-width: 700px;
+  margin: 0 auto;
+}
+
+section {
+  margin-bottom: 1rem;
+  padding: 1rem;
+  border: 1px solid #60705f;
+}
+
+button {
+  margin-right: 0.5rem;
+  padding: 0.5rem 0.75rem;
+}
+
+button:disabled {
+  opacity: 0.5;
+}
+
+#feedback {
+  min-height: 1.5rem;
+}
+
+#feedback.error {
+  color: #ff8d7d;
+}

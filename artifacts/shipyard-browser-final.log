@@ -1,0 +1,334 @@
+TAP version 13
+# Subtest: a new action family links from production content before startup state validation
+ok 1 - a new action family links from production content before startup state validation
+  ---
+  duration_ms: 966.2718
+  type: 'test'
+  ...
+# Subtest: Shipyard drafts, assembly receipt and fuel controls at 1440px
+ok 2 - Shipyard drafts, assembly receipt and fuel controls at 1440px
+  ---
+  duration_ms: 2460.3108
+  type: 'test'
+  ...
+# Subtest: Shipyard drafts, assembly receipt and fuel controls at 390px
+ok 3 - Shipyard drafts, assembly receipt and fuel controls at 390px
+  ---
+  duration_ms: 2193.4301
+  type: 'test'
+  ...
+# Subtest: observations remain visible with a cached display lacking revealLatest
+ok 4 - observations remain visible with a cached display lacking revealLatest
+  ---
+  duration_ms: 577.0366
+  type: 'test'
+  ...
+# Subtest: explicit narrative repeats, reveals Operations and keeps historical receipts at 1440px
+ok 5 - explicit narrative repeats, reveals Operations and keeps historical receipts at 1440px
+  ---
+  duration_ms: 436.4677
+  type: 'test'
+  ...
+# Subtest: explicit narrative repeats, reveals Operations and keeps historical receipts at 390px
+ok 6 - explicit narrative repeats, reveals Operations and keeps historical receipts at 390px
+  ---
+  duration_ms: 440.446
+  type: 'test'
+  ...
+# Subtest: world power edges append one dynamic Operations receipt, suppress duplicates and preserve Workshop focus
+ok 7 - world power edges append one dynamic Operations receipt, suppress duplicates and preserve Workshop focus
+  ---
+  duration_ms: 676.606
+  type: 'test'
+  ...
+# Subtest: a committed frame consolidates depletion, buffered output and power loss without claiming delivery
+ok 8 - a committed frame consolidates depletion, buffered output and power loss without claiming delivery
+  ---
+  duration_ms: 408.4068
+  type: 'test'
+  ...
+# Subtest: failed frame saving emits no procedural update; reload starts with one observation and no automatic replay
+ok 9 - failed frame saving emits no procedural update; reload starts with one observation and no automatic replay
+  ---
+  duration_ms: 497.7035
+  type: 'test'
+  ...
+# Subtest: NPC supplements use Operations, preserve authored conversations and never save generated speech
+ok 10 - NPC supplements use Operations, preserve authored conversations and never save generated speech
+  ---
+  duration_ms: 489.8298
+  type: 'test'
+  ...
+# Subtest: Processing UI explains no-power rejection and preserves loaded stock and IDs
+ok 11 - Processing UI explains no-power rejection and preserves loaded stock and IDs
+  ---
+  duration_ms: 409.4429
+  type: 'test'
+  ...
+# Subtest: Processing UI loads, stages, reviews loss and unloads disabled equipment at 1440px
+ok 12 - Processing UI loads, stages, reviews loss and unloads disabled equipment at 1440px
+  ---
+  duration_ms: 1258.8436
+  type: 'test'
+  ...
+# Subtest: Processing UI loads, stages, reviews loss and unloads disabled equipment at 390px
+ok 13 - Processing UI loads, stages, reviews loss and unloads disabled equipment at 390px
+  ---
+  duration_ms: 1143.5821
+  type: 'test'
+  ...
+# Subtest: shared cargo displays exact decimals and transfers one quantum through reload
+ok 14 - shared cargo displays exact decimals and transfers one quantum through reload
+  ---
+  duration_ms: 626.2232
+  type: 'test'
+  ...
+# Subtest: discard previews, cancellation, confirmation and overload recovery at 1440px
+ok 15 - discard previews, cancellation, confirmation and overload recovery at 1440px
+  ---
+  duration_ms: 879.8016
+  type: 'test'
+  ...
+# Subtest: discard previews, cancellation, confirmation and overload recovery at 390px
+ok 16 - discard previews, cancellation, confirmation and overload recovery at 390px
+  ---
+  duration_ms: 877.8006
+  type: 'test'
+  ...
+# Subtest: discard save failure and a switch to private passenger inventory preserve cargo
+ok 17 - discard save failure and a switch to private passenger inventory preserve cargo
+  ---
+  duration_ms: 638.6233
+  type: 'test'
+  ...
+# Subtest: old save migration persists once and a failed migration write preserves the old save
+ok 18 - old save migration persists once and a failed migration write preserves the old save
+  ---
+  duration_ms: 709.7977
+  type: 'test'
+  ...
+# Subtest: startup, keyboard navigation, hidden controls, and presentation-only switching
+ok 19 - startup, keyboard navigation, hidden controls, and presentation-only switching
+  ---
+  duration_ms: 448.5449
+  type: 'test'
+  ...
+# Subtest: Workshop crafting, feedback, selections, commands, and reload
+ok 20 - Workshop crafting, feedback, selections, commands, and reload
+  ---
+  duration_ms: 1244.3958
+  type: 'test'
+  ...
+# Subtest: hidden log receives messages, preserves reading position and follows the tail
+ok 21 - hidden log receives messages, preserves reading position and follows the tail
+  ---
+  duration_ms: 596.3421
+  type: 'test'
+  ...
+# Subtest: a future third panel registers without controller changes, with validation and focus recovery
+ok 22 - a future third panel registers without controller changes, with validation and focus recovery
+  ---
+  duration_ms: 331.9543
+  type: 'test'
+  ...
+# Subtest: additional tabs scroll into view without moving the page
+ok 23 - additional tabs scroll into view without moving the page
+  ---
+  duration_ms: 334.3471
+  type: 'test'
+  ...
+# Subtest: simulation continues while Workshop is active
+ok 24 - simulation continues while Workshop is active
+  ---
+  duration_ms: 1258.5841
+  type: 'test'
+  ...
+# Subtest: responsive panels keep controls reachable and preserve Workshop scroll
+ok 25 - responsive panels keep controls reachable and preserve Workshop scroll
+  ---
+  duration_ms: 1010.5064
+  type: 'test'
+  ...
+# Subtest: malformed saves show the original failure and remain untouched
+ok 26 - malformed saves show the original failure and remain untouched
+  ---
+  duration_ms: 273.7542
+  type: 'test'
+  ...
+# Subtest: location browsing, selection and zoom are presentation-only; travel updates every local display
+ok 27 - location browsing, selection and zoom are presentation-only; travel updates every local display
+  ---
+  duration_ms: 3244.5578
+  type: 'test'
+  ...
+# Subtest: transfer form sends and receives cargo through saved actions
+ok 28 - transfer form sends and receives cargo through saved actions
+  ---
+  duration_ms: 677.8455
+  type: 'test'
+  ...
+# Subtest: failed travel preserves location, tab, tint, graph history and arrival log
+ok 29 - failed travel preserves location, tab, tint, graph history and arrival log
+  ---
+  duration_ms: 500.9513
+  type: 'test'
+  ...
+# Subtest: mousewheel zoom, unselected dominance and bounded local views
+ok 30 - mousewheel zoom, unselected dominance and bounded local views
+  ---
+  duration_ms: 1277.1661
+  type: 'test'
+  ...
+# Subtest: ship area travel resumes after reload, pauses when hidden, and preserves aboard identity
+ok 31 - ship area travel resumes after reload, pauses when hidden, and preserves aboard identity
+  ---
+  duration_ms: 13943.2431
+  type: 'test'
+  ...
+# Subtest: unowned passenger ship navigation hides assets and clears previous crafting and transfer controls
+ok 32 - unowned passenger ship navigation hides assets and clears previous crafting and transfer controls
+  ---
+  duration_ms: 2770.8059
+  type: 'test'
+  ...
+# Subtest: failed arrival saving leaves the journey intact and does not announce docking
+ok 33 - failed arrival saving leaves the journey intact and does not announce docking
+  ---
+  duration_ms: 2687.231
+  type: 'test'
+  ...
+# Subtest: touch, keyboard, narrow map layout and reduced-motion alternatives
+ok 34 - touch, keyboard, narrow map layout and reduced-motion alternatives
+  ---
+  duration_ms: 611.719
+  type: 'test'
+  ...
+# Subtest: People browsing is presentation only; requests persist across tabs, inspection and reload
+ok 35 - People browsing is presentation only; requests persist across tabs, inspection and reload
+  ---
+  duration_ms: 959.6481
+  type: 'test'
+  ...
+# Subtest: dialogue failures preserve passage and terminal relocation leaves a readable farewell
+ok 36 - dialogue failures preserve passage and terminal relocation leaves a readable farewell
+  ---
+  duration_ms: 736.5502
+  type: 'test'
+  ...
+# Subtest: People mobile flow preserves conversation while browsing, ignores digit directives and maintains focus
+ok 37 - People mobile flow preserves conversation while browsing, ignores digit directives and maintains focus
+  ---
+  duration_ms: 878.1381
+  type: 'test'
+  ...
+# Subtest: ship arrival during dialogue keeps People selected and disembarking closes contact
+ok 38 - ship arrival during dialogue keeps People selected and disembarking closes contact
+  ---
+  duration_ms: 2774.8638
+  type: 'test'
+  ...
+# Subtest: current-version content recovery notifies and preserves NPC and request history
+ok 39 - current-version content recovery notifies and preserves NPC and request history
+  ---
+  duration_ms: 694.4741
+  type: 'test'
+  ...
+# Subtest: long dialogue and wrapping replies stay reachable without moving the reader on simulation updates
+ok 40 - long dialogue and wrapping replies stay reachable without moving the reader on simulation updates
+  ---
+  duration_ms: 994.0302
+  type: 'test'
+  ...
+# Subtest: Research previews are read-only, experiments advance knowledge, and exhausted setups spend nothing
+ok 41 - Research previews are read-only, experiments advance knowledge, and exhausted setups spend nothing
+  ---
+  duration_ms: 934.7449
+  type: 'test'
+  ...
+# Subtest: Research save failures do not publish discoveries or consume the next random outcome
+ok 42 - Research save failures do not publish discoveries or consume the next random outcome
+  ---
+  duration_ms: 616.7649
+  type: 'test'
+  ...
+# Subtest: Research clears samples on location changes and keeps passenger assets private
+ok 43 - Research clears samples on location changes and keeps passenger assets private
+  ---
+  duration_ms: 717.0715
+  type: 'test'
+  ...
+# Subtest: Mira's technical advice supplies a saved optional clue to research
+ok 44 - Mira's technical advice supplies a saved optional clue to research
+  ---
+  duration_ms: 661.051
+  type: 'test'
+  ...
+# Subtest: legacy research migration preserves former recipes and reports the compatibility grant
+ok 45 - legacy research migration preserves former recipes and reports the compatibility grant
+  ---
+  duration_ms: 513.1147
+  type: 'test'
+  ...
+# Subtest: Research keyboard controls, mobile layout and a long journal stay usable
+ok 46 - Research keyboard controls, mobile layout and a long journal stay usable
+  ---
+  duration_ms: 1788.6676
+  type: 'test'
+  ...
+# Subtest: new research evidence is available after reload without resetting existing progress
+ok 47 - new research evidence is available after reload without resetting existing progress
+  ---
+  duration_ms: 772.5681
+  type: 'test'
+  ...
+# Subtest: generated instances use browser rosters, map commands, scenes, and saved contact lifecycle
+ok 48 - generated instances use browser rosters, map commands, scenes, and saved contact lifecycle
+  ---
+  duration_ms: 1529.2926
+  type: 'test'
+  ...
+# Subtest: generated research history and controller access render independently of title ownership
+ok 49 - generated research history and controller access render independently of title ownership
+  ---
+  duration_ms: 1145.5378
+  type: 'test'
+  ...
+# Subtest: authored inspection spawns and activates entities visible in navigation and after reload
+ok 50 - authored inspection spawns and activates entities visible in navigation and after reload
+  ---
+  duration_ms: 798.2025
+  type: 'test'
+  ...
+# Subtest: experimental completion rewards spawn once and survive research UI reload
+ok 51 - experimental completion rewards spawn once and survive research UI reload
+  ---
+  duration_ms: 708.1007
+  type: 'test'
+  ...
+# Subtest: blocked experimental rewards publish feedback without partial research or entity changes
+ok 52 - blocked experimental rewards publish feedback without partial research or entity changes
+  ---
+  duration_ms: 535.5933
+  type: 'test'
+  ...
+# Subtest: ledger defaults missing v8 history without replay and retains removed content through a subsequent action
+ok 53 - ledger defaults missing v8 history without replay and retains removed content through a subsequent action
+  ---
+  duration_ms: 727.2159
+  type: 'test'
+  ...
+# Subtest: malformed historical identities stop startup and preserve the original ledger save
+ok 54 - malformed historical identities stop startup and preserve the original ledger save
+  ---
+  duration_ms: 487.0976
+  type: 'test'
+  ...
+1..54
+# tests 54
+# suites 0
+# pass 54
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 66417.9103

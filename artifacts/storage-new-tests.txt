@@ -1,0 +1,162 @@
+TAP version 13
+# Subtest: decimal volume parsing and display preserve every quantum through the safe range
+ok 1 - decimal volume parsing and display preserve every quantum through the safe range
+  ---
+  duration_ms: 1.3305
+  type: 'test'
+  ...
+# Subtest: mixed physical items share capacity, power is excluded, exact fit succeeds
+ok 2 - mixed physical items share capacity, power is excluded, exact fit succeeds
+  ---
+  duration_ms: 3.4021
+  type: 'test'
+  ...
+# Subtest: complete exchanges neither clip multi-rewards nor fund inputs with outputs
+ok 3 - complete exchanges neither clip multi-rewards nor fund inputs with outputs
+  ---
+  duration_ms: 2.104
+  type: 'test'
+  ...
+# Subtest: invalid arithmetic and quantity maps never mutate stores
+ok 4 - invalid arithmetic and quantity maps never mutate stores
+  ---
+  duration_ms: 1.7775
+  type: 'test'
+  ...
+# Subtest: overloaded saves allow shrinking and equal-volume exchanges but reject expansion
+ok 5 - overloaded saves allow shrinking and equal-volume exchanges but reject expansion
+  ---
+  duration_ms: 2.2444
+  type: 'test'
+  ...
+# Subtest: receivable item counts floor, transfers conserve bulk units and reject aliases
+ok 6 - receivable item counts floor, transfers conserve bulk units and reject aliases
+  ---
+  duration_ms: 7.4906
+  type: 'test'
+  ...
+# Subtest: bulk roles round upward exactly and aggregate repeated slots
+ok 7 - bulk roles round upward exactly and aggregate repeated slots
+  ---
+  duration_ms: 2.6772
+  type: 'test'
+  ...
+# Subtest: capacity metadata rejects obsolete fields and invalid fresh loads
+ok 8 - capacity metadata rejects obsolete fields and invalid fresh loads
+  ---
+  duration_ms: 3.7773
+  type: 'test'
+  ...
+# Subtest: installed expansion is passive, live, and checked together with product consumption
+not ok 9 - installed expansion is passive, live, and checked together with product consumption
+  ---
+  duration_ms: 4.008
+  type: 'test'
+  location: 'C:\\Users\\Bud\\Documents\\SpaceGameText\\tests\\storage.test.mjs:141:1'
+  failureType: 'testCodeFailure'
+  error: |-
+    The input did not match the regular expression /overflow/. Input:
+    
+    'Requires 1 cargo module.'
+    
+  code: 'ERR_ASSERTION'
+  name: 'AssertionError'
+  expected:
+  actual: 'Requires 1 cargo module.'
+  operator: 'match'
+  stack: |-
+    TestContext.<anonymous> (file:///C:/Users/Bud/Documents/SpaceGameText/tests/storage.test.mjs:157:10)
+    Test.runInAsyncScope (node:async_hooks:214:14)
+    Test.run (node:internal/test_runner/test:1047:25)
+    Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+    Test.postRun (node:internal/test_runner/test:1173:19)
+    Test.run (node:internal/test_runner/test:1101:12)
+    async Test.processPendingSubtests (node:internal/test_runner/test:744:7)
+  ...
+# Subtest: research sample threshold and preview use exact bulk quantities
+ok 10 - research sample threshold and preview use exact bulk quantities
+  ---
+  duration_ms: 3.806
+  type: 'test'
+  ...
+# Subtest: confirmed discard recovers unusable products and save failures roll back
+ok 11 - confirmed discard recovers unusable products and save failures roll back
+  ---
+  duration_ms: 3.9223
+  type: 'test'
+  ...
+# Subtest: new catalog items do not add capacity and endpoint policy precedes quantity diagnostics
+ok 12 - new catalog items do not add capacity and endpoint policy precedes quantity diagnostics
+  ---
+  duration_ms: 3.1833
+  type: 'test'
+  ...
+# Subtest: literal version 1 inventory migrates once and preserves its source
+ok 13 - literal version 1 inventory migrates once and preserves its source
+  ---
+  duration_ms: 2.9226
+  type: 'test'
+  ...
+# Subtest: literal version 2 inventory migrates once and preserves its source
+ok 14 - literal version 2 inventory migrates once and preserves its source
+  ---
+  duration_ms: 1.1896
+  type: 'test'
+  ...
+# Subtest: literal version 3 inventory migrates once and preserves its source
+ok 15 - literal version 3 inventory migrates once and preserves its source
+  ---
+  duration_ms: 0.8221
+  type: 'test'
+  ...
+# Subtest: literal version 4 inventory migrates once and preserves its source
+ok 16 - literal version 4 inventory migrates once and preserves its source
+  ---
+  duration_ms: 0.5339
+  type: 'test'
+  ...
+# Subtest: literal version 5 inventory migrates once and preserves its source
+ok 17 - literal version 5 inventory migrates once and preserves its source
+  ---
+  duration_ms: 0.7083
+  type: 'test'
+  ...
+# Subtest: literal version 6 inventory migrates once and preserves its source
+ok 18 - literal version 6 inventory migrates once and preserves its source
+  ---
+  duration_ms: 0.7946
+  type: 'test'
+  ...
+# Subtest: new sites, NPCs, and items initialize in new units exactly once
+ok 19 - new sites, NPCs, and items initialize in new units exactly once
+  ---
+  duration_ms: 5.7869
+  type: 'test'
+  ...
+# Subtest: full historical caps migrate to valid overloaded cargo without loss
+ok 20 - full historical caps migrate to valid overloaded cargo without loss
+  ---
+  duration_ms: 0.5922
+  type: 'test'
+  ...
+# Subtest: invalid legacy quantities, removed IDs and unknown conversion metadata fail without mutation
+ok 21 - invalid legacy quantities, removed IDs and unknown conversion metadata fail without mutation
+  ---
+  duration_ms: 3.9747
+  type: 'test'
+  ...
+# Subtest: migration preserves active ship journeys, journal/RNG, and equipment
+ok 22 - migration preserves active ship journeys, journal/RNG, and equipment
+  ---
+  duration_ms: 3.3032
+  type: 'test'
+  ...
+1..22
+# tests 22
+# suites 0
+# pass 21
+# fail 1
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 150.6295

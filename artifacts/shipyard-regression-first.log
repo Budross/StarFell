@@ -1,0 +1,149 @@
+✔ authored identities and reusable definitions are distinct, with one canonical store and owner (59.8112ms)
+✔ creation and ID allocation roll back on invalid bindings and failed saves without changing catalogs/actions (28.123ms)
+✔ batch creation binds actor and container identities before validating the final state (19.6555ms)
+✔ generated ships use normal target commands, scenes, maps, transfers, and reload (39.2446ms)
+✔ generated NPCs use normal contact and independent encounter histories (34.4949ms)
+✔ an authorized ship can move without moving or being occupied by the player (27.8732ms)
+✔ registry validation rejects collisions, dangling slices, incorrect types, and missing live definitions (29.4325ms)
+✔ creation rejects incompatible fields and overloaded initial cargo, while saved overload remains valid (44.33ms)
+✔ runtime target payloads are order-independent and remote scene status is safely unavailable (35.3331ms)
+✔ retirement closes contact, retains history/identity, freezes domain state, and cannot reactivate (59.2145ms)
+✔ occupied, docked-at, and journey-target locations return specific blockers (31.7725ms)
+✔ explicit resolutions and lifecycle/contact changes roll back together on save failure (33.5693ms)
+✔ inactive instances suspend production, remain persistent, and reactivate explicitly (32.9237ms)
+✔ history at a retired generated site resolves after its definition is removed (31.3964ms)
+✔ a stale transition preview cannot authorize a now-occupied entity (27.4961ms)
+✔ the complete generated actor lifecycle uses the production bootstrap, runtime, and commands (43.9842ms)
+✔ an explicitly composed domain collector participates in validation and lifecycle without registry schema changes (23.805ms)
+✔ manual no-power rejection is pure and precedes IDs, loaded inputs and start facts; zero-rate starts (88.9998ms)
+✔ loading, partial power failure, quiet blocked work and restoration preserve committed inputs (40.6335ms)
+✔ completed extraction debits once, releases claim, buffers in full cargo, travels and abort loses buffer (63.4626ms)
+✔ broken machine can unload atomic finished output; delivery consumes no power and no resumption (37.9348ms)
+✔ own-run access, other-user denial, manager-only access and revocation share preview and mutation rules (31.1004ms)
+✔ claims prevent concurrent overcommit, aborted work releases reserve, IDs never reuse (38.97ms)
+✔ machine group count allocates oldest slots; delivery holds capacity until admitted (31.3008ms)
+✔ removed/rebalanced process definitions do not reinterpret snapshots or historical facts (46.09ms)
+✔ v8 migration preserves generated identity, counters, delegation and assets; v9 malformed state fails (32.543ms)
+✔ start and extraction buffer transitions roll back IDs, inputs, debit and ledger on save failure (22.7625ms)
+✔ abort review binds phase; full-storage warning never rejects an otherwise operable start (27.1499ms)
+✔ workshop is occupied-host only, reveals installed groups through facility access, respects unlocks (26.4127ms)
+✔ all resource/component transformations compile and run; products, utilities and conditions alias reject (88.4633ms)
+✔ terminal host orchestration aborts committed material atomically; inactive hosts can resume (22.905ms)
+✔ arrival gives no retroactive extraction; paid journey completes after processing empties the battery (38.87ms)
+✔ depletion precedes output delivery, staged reload does not debit again, malformed claims/phases fail (30.4835ms)
+✔ generic extraction works with another material, node, generated source and machine capability group (25.563ms)
+✔ industrial machines can be assembled and installed through ordinary existing actions (31.1045ms)
+✔ machine multipliers are snapshotted and bulk refining outputs remain exact (34.1575ms)
+✔ finished extraction survives a terminal source and removal of its live node definition (30.9804ms)
+✔ whole-output quantity overflow remains buffered without pausing or clipping the simulation (16.4252ms)
+✔ catalog rejects malformed mechanics, predicates, tags, references and duplicate variants (22.6985ms)
+✔ resolver is pure, seeded and always gives bounded positive progress (13.4044ms)
+✔ catalog insertion order cannot change outcomes and context is detached from game state (11.8246ms)
+✔ one experiment advances several candidates but never cascades new eligibility (12.7094ms)
+✔ repetition counts meaningful evidence, not reordered, padded or equivalent samples (11.8445ms)
+✔ relevant capability variants expose fresh evidence, and toggling never restores old credit (16.8263ms)
+✔ distinct sample requirements allocate physical units rather than counting tags twice (0.3516ms)
+✔ clues learned before eligibility award once, and external discovery grants stay authoritative (11.8381ms)
+✔ payload validation and preview never consume resources, progress or randomness (24.6388ms)
+✔ research is local, respects ownership and operational equipment, and supports equipped ships (24.1598ms)
+✔ method power costs are checked separately from sample consumption (6.8009ms)
+✔ failed saves roll back payment, discoveries, journal, evidence and the random stream (25.3953ms)
+✔ all opening recipes and recovery are reachable with zero power and no lucky bonuses (313.2636ms)
+ℹ Opening route peak cargo: 0.285 m³ of 10 m³.
+✔ optional inspection and conversation routes reach photovoltaic knowledge without semiconductor discovery (17.8892ms)
+✔ version-five migration preserves assets and gives legacy knowledge exactly once (14.5693ms)
+✔ content additions and text edits preserve progress; removed or rebalanced evidence fails safely (9.1079ms)
+✔ journal compaction keeps lifetime evidence and validates malformed saves without mutating them (207.0517ms)
+✔ adding evidence, methods and instrument variants preserves old credit without migration code (10.5999ms)
+✔ definition-only additions can grant an alternative crafting role and use a new equipment capability (21.9431ms)
+✔ fresh production games add no ship; static sites cannot travel even with engines (24.5157ms)
+✔ boarding requires exact docking site, discovery and access, but not ownership (16.7137ms)
+✔ passenger navigation spends only ship power and grants no management access (49.6826ms)
+✔ same-area journey preserves ship assets and location ID until disembarking (29.8262ms)
+✔ round trip uses one area edge at a time and only changes position on arrival (76.1314ms)
+✔ route checks block locked, unknown, nonadjacent, mobile and wrong-area targets (34.8828ms)
+✔ engines and exact power are rechecked and movement failures never debit (20.1552ms)
+✔ engine condition, quantities, ship speed and equipment upgrades change future durations (29.779ms)
+✔ departure, boarding and arrival save failures roll back every affected field (30.2851ms)
+✔ active journeys save remaining visible time and resume without offline progress (29.5305ms)
+✔ transfers block in transit and recheck changed areas on arrival (15.1893ms)
+✔ map browsing is read-only, docking links are real, and ship follows saved position (18.1408ms)
+✔ version-three area and ship saves migrate once without grants or replenishment (35.1973ms)
+✔ invalid docking, journeys, area occupancy and unsupported ship metadata fail clearly (47.0647ms)
+✔ one content entry adds a different ship to an existing save without resetting others (14.2125ms)
+✔ state phases preserve explicit order, candidate/context identity, and immutable snapshots (1.6968ms)
+✔ state descriptors and asynchronous hooks fail with participant, phase and original cause (0.6393ms)
+✔ a persistent capability joins startup, loads, actions and saved frames through construction alone (47.4932ms)
+✔ legacy versions use frozen migration before custom current hooks, with current-only instance repair (62.7057ms)
+✖ one default manifest serves bootstrap, direct core and compatibility callers (18.3957ms)
+✔ compatibility wrappers forward composed lifecycle and collector overrides (16.3593ms)
+✔ current validation preserves entity iteration and first-error order (20.1775ms)
+✔ reconciliation failures retain caller saves and stop later domains (10.9097ms)
+✖ current entity repair precedes dialogue/research and retains preflight failure attribution (22.0133ms)
+✔ production import graph stays acyclic and generic engines have no domain dependencies (15.3707ms)
+ℹ tests 82
+ℹ suites 0
+ℹ pass 80
+ℹ fail 2
+ℹ cancelled 0
+ℹ skipped 0
+ℹ todo 0
+ℹ duration_ms 1046.6893
+
+✖ failing tests:
+
+test at tests\stateLifecycle.test.mjs:99:1
+✖ one default manifest serves bootstrap, direct core and compatibility callers (18.3957ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+      'entities',
+      'authority',
+  +   'vessels',
+      'entity-instances',
+      'ships',
+      'dialogue',
+      'knowledge-flags',
+      'research',
+  
+      at TestContext.<anonymous> (file:///C:/Users/Bud/Documents/SpaceGameText/tests/stateLifecycle.test.mjs:105:10)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1047:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+      at Test.postRun (node:internal/test_runner/test:1173:19)
+      at Test.run (node:internal/test_runner/test:1101:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:744:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'entities', 'authority', 'vessels', 'entity-instances', 'ships', 'dialogue', 'knowledge-flags', 'research', 'world-ledger', 'entity-references', 'processing', 'crafting-selection' ],
+    expected: [ 'entities', 'authority', 'entity-instances', 'ships', 'dialogue', 'knowledge-flags', 'research', 'world-ledger', 'entity-references', 'processing', 'crafting-selection' ],
+    operator: 'deepStrictEqual'
+  }
+
+test at tests\stateLifecycle.test.mjs:157:1
+✖ current entity repair precedes dialogue/research and retains preflight failure attribution (22.0133ms)
+  AssertionError [ERR_ASSERTION]: Expected values to be strictly deep-equal:
+  + actual - expected
+  
+    [
+  +   'vessels',
+      'entity-instances',
+      'dialogue',
+      'research',
+      'world-ledger',
+      'processing'
+  
+      at TestContext.<anonymous> (file:///C:/Users/Bud/Documents/SpaceGameText/tests/stateLifecycle.test.mjs:166:10)
+      at Test.runInAsyncScope (node:async_hooks:214:14)
+      at Test.run (node:internal/test_runner/test:1047:25)
+      at Test.processPendingSubtests (node:internal/test_runner/test:744:18)
+      at Test.postRun (node:internal/test_runner/test:1173:19)
+      at Test.run (node:internal/test_runner/test:1101:12)
+      at async Test.processPendingSubtests (node:internal/test_runner/test:744:7) {
+    generatedMessage: true,
+    code: 'ERR_ASSERTION',
+    actual: [ 'vessels', 'entity-instances', 'dialogue', 'research', 'world-ledger', 'processing' ],
+    expected: [ 'entity-instances', 'dialogue', 'research', 'world-ledger', 'processing' ],
+    operator: 'deepStrictEqual'
+  }
