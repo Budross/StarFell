@@ -4,6 +4,6 @@ export function locationFactProvider({world}) {
   return {id:'location',provide(state,scope) {
     const def=locationDefinition(state,world,scope.locationId);
     return [fact('location','location_identity',{type:'entity',id:scope.locationId},{name:def.name,
-      baseText:def.narrative?.base ?? `${def.name} is your current location.`,dimensions:def.narrative?.dimensions ?? {}},scope)];
+      baseText:def.narrative?.base ?? (def.kind==='area' || def.type==='ship' ? def.description : null) ?? `${def.name} is your current location.`,dimensions:def.narrative?.dimensions ?? {}},scope)];
   }};
 }

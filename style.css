@@ -8,11 +8,35 @@
   --amber-dim:#b39159;
   --green:#a9c6a2;
   --muted:#89938d;
-  --border:#3b423d
+  --border:#3b423d;
+  --scrollbar-track:#11170f;
+  --scrollbar-thumb:#80683b
 }
 
 * {
-  box-sizing:border-box
+  box-sizing:border-box;
+  scrollbar-color:var(--scrollbar-thumb) var(--scrollbar-track);
+  scrollbar-width:thin
+}
+
+*::-webkit-scrollbar {
+  width:10px;
+  height:10px
+}
+
+*::-webkit-scrollbar-track {
+  background:linear-gradient(90deg,#0b100b,var(--scrollbar-track) 45%,#182018);
+  border:1px solid #30392f
+}
+
+*::-webkit-scrollbar-thumb {
+  background:linear-gradient(90deg,#57482c,var(--scrollbar-thumb) 48%,#5c4d30);
+  border:1px solid #aa8b50;
+  box-shadow:inset 0 0 4px #f1d18a55,0 0 5px #d9ae5533
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background:linear-gradient(90deg,#80673b,#aa8950 48%,#80673b)
 }
 
 body {
@@ -252,8 +276,6 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,[t
 
 .narrative-stream {
   overflow:auto;
-  scrollbar-width:thin;
-  scrollbar-color:#6e5c37 #11170f;
   padding:23px 5px 12px 0;
   flex:1;
   overflow-wrap:anywhere
@@ -379,12 +401,12 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,[t
 
 .directive-heading h2 {
   font-weight:normal;
-  font-size:9px;
+  font-size:12px;
   letter-spacing:.12em
 }
 
 .directive-heading>span {
-  font-size:8px;
+  font-size:10px;
   color:var(--amber-dim)
 }
 
@@ -400,27 +422,46 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,[t
   width:100%;
   border:1px solid transparent;
   background:transparent;
-  padding:5px 6px;
+  padding:8px 8px;
+  min-height:40px;
   color:var(--amber);
   text-align:left;
-  font-size:13px
+  font-size:16px
 }
 
 .hotkey {
-  font-size:13px;
+  font-size:16px;
   color:#f1c781
 }
 
 .actions small {
   margin-left:auto;
   color:#b59a66;
-  font-size:9px;
+  font-size:12px;
   white-space:nowrap
 }
 
 .actions button:hover:not(:disabled) {
   background:#e5b56813;
   border-color:#a8894d55
+}
+
+.actions button.repeat-ready:not(:disabled) {
+  background:#e5b56816;
+  border-color:#a8894d77
+}
+
+.actions button.repeating:not(:disabled) {
+  background:#a9c6a224;
+  border-color:var(--green);
+  color:#d3e8ce
+}
+
+.actions button.repeating::after {
+  content:'AUTO';
+  color:var(--green);
+  font-size:.7em;
+  letter-spacing:.08em
 }
 
 .actions button:disabled {
@@ -1224,8 +1265,6 @@ meter::-moz-meter-bar {
   .instrument-bay {
     min-height:0;
     overflow-y:auto;
-    scrollbar-width:thin;
-    scrollbar-color:#6e795f #1d241e;
     padding-bottom:8px;
   }
   .instrument {
@@ -1236,9 +1275,25 @@ meter::-moz-meter-bar {
 
 /* Catalog-driven inventory and fabrication controls. */
 #item-inventory { font-size:11px; }
-#item-inventory > div { gap:10px; }
+.collapsible-list { display:grid; gap:8px; }
+.collapsible-section { --section-color:var(--amber); border:1px solid #584c3566; background:#0c140d70; }
+.collapsible-section[data-category="component"] { --section-color:#a8c494; border-color:#52604799; }
+.collapsible-section[data-category="product"] { --section-color:#8fbec2; border-color:#4d676899; }
+.collapsible-section > summary { display:flex; align-items:center; gap:10px; min-height:44px; padding:9px 12px; color:var(--section-color); cursor:pointer; font-size:11px; letter-spacing:.09em; text-transform:uppercase; list-style:none; border-left:3px solid var(--section-color); }
+.collapsible-section > summary::-webkit-details-marker { display:none; }
+.collapsible-section > summary::before { content:"▸"; font-size:15px; line-height:1; }
+.collapsible-section[open] > summary::before { content:"▾"; }
+.collapsible-section > summary::after { content:"OPEN"; margin-left:auto; font-size:8px; color:var(--muted); }
+.collapsible-section[open] > summary::after { content:"CLOSE"; }
+.collapsible-section > summary:hover { background:#ffffff0a; }
+.collapsible-section > summary:focus-visible { outline:2px solid var(--amber); outline-offset:-3px; }
+.collapsible-section[open] > summary { border-bottom:1px solid #54604d66; }
+.collapsible-section > .storage-readouts { max-height:190px; overflow-y:auto; scrollbar-width:thin; padding:0 12px; }
+.collapsible-section > .storage-readouts:focus-visible { outline:2px solid var(--section-color); outline-offset:-3px; }
+#item-inventory .storage-readouts > div { gap:10px; }
+#item-inventory .storage-readouts > [hidden] { display:none; }
 #item-inventory dt { min-width:0; white-space:normal; }
-#item-inventory dd { flex-shrink:0; font-size:12px; color:var(--amber); }
+#item-inventory dd { flex-shrink:0; font-size:12px; color:var(--section-color); }
 .crafting-content { display:grid; gap:12px; font-size:12px; line-height:1.5; }
 .crafting-content select { width:100%; min-width:0; background:#141b17; color:#d7dfd6; border:1px solid var(--border); padding:9px 6px; font-size:12px; }
 #ingredient-slots { display:grid; gap:10px; }
@@ -1355,7 +1410,7 @@ meter::-moz-meter-bar {
 #map-view { font-size:12px; color:var(--amber); margin-left:auto; }
 .map-stage { flex:1 1 0; min-height:0; width:100%; position:relative; border:1px solid #435244; overflow:hidden; }
 #location-map { width:100%; height:100%; display:block; touch-action:none; }
-.map-controls { display:flex; gap:6px; }
+.map-controls { position:absolute; top:10px; right:10px; z-index:2; display:flex; gap:6px; }
 .map-controls button { box-shadow:0 2px 6px #000000aa; }
 #map-in, #map-out { min-width:36px; font-weight:bold; font-size:14px; line-height:1; display:inline-flex; align-items:center; justify-content:center; }
 #map-sidebar { position:absolute; inset:0 auto 0 0; width:240px; max-width:85%; background:#17231af5; border-right:1px solid #64745c; padding:14px; overflow:auto; box-shadow:4px 0 18px #0007; z-index:5; }
@@ -1545,3 +1600,14 @@ meter::-moz-meter-bar {
 #vc-runs input { width:auto; margin-right:8px; accent-color:var(--amber); }
 @media(max-width:1000px) { .shipyard-workstation { grid-template-columns:minmax(175px,30%) minmax(280px,1fr); } .yard-metrics { grid-column:1 / -1; } }
 @media(max-width:650px) { .shipyard-workstation,.vc-grid { grid-template-columns:1fr; } .yard-metrics { grid-column:auto; } .shipyard-panel { padding:12px; } }
+
+@media(min-width:2400px) and (min-height:1200px) {
+  .crt { height:min(1200px,calc(100dvh - 150px)); }
+  .directive-zone { max-height:440px; padding:20px 32px; }
+  .directive-heading h2 { font-size:16px; }
+  .directive-heading>span { font-size:14px; }
+  .actions { gap:6px; }
+  .actions button { min-height:56px; padding:10px 12px; font-size:22px; }
+  .hotkey { font-size:22px; }
+  .actions small { font-size:17px; }
+}

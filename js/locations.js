@@ -352,19 +352,6 @@ export function graphView(state, world, content, areaId = null) {
       owned: ownerOf(state, def.id) === "player", ownerId: ownerOf(state, def.id), current: def.id === state.locationId,
       containsPlayer: def.kind === "area" && areaOf(state, world, state.locationId) === def.id,
       reason: travelReason(state, def.id, world, content) }));
-  if (areaId) {
-    for (const def of locationInstances(state, world).filter(d => d.id === areaId || (d.kind === "site" && state.locations[d.id].areaId === areaId))) {
-      if (!isKnown(state, world, content, def.id)) continue;
-      const ctx = getLocationContext(state, content, world, def.id);
-      for (const scene of def.sceneObjects) {
-        if (conditionReason(ctx.actionState, scene.conditions, content)) continue;
-        // Locations are already derived from saved membership; stale scene references add nothing.
-        if (scene.locationId) continue;
-        nodes.push({ id: `scene:${def.id}:${scene.id}`, name: scene.name, description: `Scene object at ${def.name}.`, kind: "object",
-          ownerLocationId: def.id, actionId: `inspect:${def.id}:${scene.id}`, reason: state.locationId === def.id ? "" : `Visit ${def.name} to inspect.` });
-      }
-    }
-  }
   const ids = new Set(nodes.map(n => n.id));
   const links = areaId ? nodes.filter(n => locationDefinition(state, world, n.id)?.mobile && ids.has(state.locations[n.id].dockedAtId))
     .map(n => [n.id, state.locations[n.id].dockedAtId]) : world.links.filter(([a, b]) => ids.has(a) && ids.has(b));

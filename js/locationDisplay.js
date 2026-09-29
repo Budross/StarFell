@@ -10,17 +10,17 @@ export default function locationDisplay(world, content, onAction, getGraph = gra
   const panel = document.querySelector("#locations-panel");
   panel.innerHTML = `
     <div class="map-toolbar">
-      <div class="map-controls">
-        <button id="map-current" type="button">Current area</button>
-        <button id="map-in" type="button" aria-label="Zoom in">+</button>
-        <button id="map-out" type="button" aria-label="Zoom out">−</button>
-      </div>
       <span id="map-view" role="status"></span>
       <button id="ship-undock" type="button" hidden>Undock</button>
     </div>
     <p id="ship-status" class="local-store-label"></p>
     <div class="map-stage">
       <canvas id="location-map" tabindex="0" aria-label="Location map. Tab cycles nodes; Enter views area or focuses action; Plus and minus zoom; arrow keys pan; Escape returns to the area network."></canvas>
+      <div class="map-controls">
+        <button id="map-current" type="button">Current area</button>
+        <button id="map-in" type="button" aria-label="Zoom in">+</button>
+        <button id="map-out" type="button" aria-label="Zoom out">−</button>
+      </div>
       <aside id="map-sidebar" aria-label="Selected location" hidden>
         <button id="map-close" type="button" aria-label="Close location details">Close ×</button>
         <h3 id="map-name"></h3><p id="map-owner"></p><p id="map-description"></p><p id="map-cargo"></p>
@@ -255,10 +255,10 @@ export default function locationDisplay(world, content, onAction, getGraph = gra
     ctx.font = "12px Consolas, monospace"; ctx.textAlign = "center";
     for (const node of drawn) {
       if (node.id === selectedId) { ctx.strokeStyle = "#e6b86b"; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(node.x, node.y, 18, 0, Math.PI * 2); ctx.stroke(); }
-      ctx.fillStyle = node.mobile ? "#8cb9cc" : node.kind === "object" ? "#88938c" : "#a9c6a2";
+      ctx.fillStyle = node.mobile ? "#8cb9cc" : "#a9c6a2";
       ctx.beginPath();
       if (node.current || node.containsPlayer) { ctx.moveTo(node.x, node.y - 9); ctx.lineTo(node.x + 9, node.y); ctx.lineTo(node.x, node.y + 9); ctx.lineTo(node.x - 9, node.y); ctx.closePath(); }
-      else ctx.arc(node.x, node.y, node.kind === "object" ? 4 : 7, 0, Math.PI * 2);
+      else ctx.arc(node.x, node.y, 7, 0, Math.PI * 2);
       ctx.fill(); ctx.fillStyle = node.id === selectedId ? "#e6b86b" : "#bbcbbd";
       ctx.fillText(node.name, node.x, node.y + 34);
     }
@@ -283,13 +283,13 @@ export default function locationDisplay(world, content, onAction, getGraph = gra
     sidebar.hidden = !node || collapsed;
     if (node) {
       setText(el("map-name"), node.name);
-      setText(el("map-owner"), node.kind === "object" ? "Scene object" : node.current ? "Your current location" : node.owned ? "Player-owned" : node.ownerId ? `Owned by ${labelFor(state, node.ownerId)}` : node.kind === "area" ? "Area" : "Unowned");
+      setText(el("map-owner"), node.current ? "Your current location" : node.owned ? "Player-owned" : node.ownerId ? `Owned by ${labelFor(state, node.ownerId)}` : node.kind === "area" ? "Area" : "Unowned");
       setText(el("map-description"), node.description);
       setText(el("map-cargo"), locationDefinition(state, world, node.id)?.kind === "site" && canUse(state, "player", node.id, "viewCargo")
         ? describeStorage(storageSummary(getLocationContext(state, content, world, node.id).store, content)) : "");
       const status = node.actionId ? getActionStatus(node.actionId) : { available: false, reason: "Board a ship to travel." };
       setText(el("map-reason"), [node.reason || status.reason, node.detail].filter(Boolean).join(" · "));
-      setText(el("map-action"), node.kind === "object" ? "Inspect" : node.actionLabel ?? "Travel");
+      setText(el("map-action"), node.actionLabel ?? "Travel");
       el("map-action").disabled = Boolean(node.reason) || !status.available;
     }
     const next = JSON.stringify([areaId, selectedId, zoom, pan, graph]);

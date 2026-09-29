@@ -4,14 +4,25 @@ export default function playerActionsDisplay(onSelect, selector = "#player-actio
   const container = document.querySelector(selector);
   const help = document.querySelector("#command-help");
   const buttons = new Map();
+  let selectedGathering = null;
+  let repeating = false;
   if (!container) throw new Error(`Action display target not found: ${selector}`);
 
   container.addEventListener("click", event => {
     const button = event.target.closest("[data-action]");
-    if (button && container.contains(button) && !button.disabled) onSelect(button.dataset.action);
+    if (button && container.contains(button) && !button.disabled) onSelect(button.dataset.action, true);
   });
 
-  return function renderActions() {
+  function updateRepeatState() {
+    for (const [id, button] of buttons) {
+      const selected = id === selectedGathering && !button.disabled;
+      button.classList.toggle("repeat-ready", selected);
+      button.classList.toggle("repeating", selected && repeating);
+      if (button.dataset.gathering) button.setAttribute("aria-pressed", String(selected && repeating));
+    }
+  }
+
+  function renderActions() {
     const visible = getActions("directives").filter(action => action.visible);
     const visibleIds = new Set(visible.map(action => action.id));
     for (const [id, button] of buttons) {
@@ -42,7 +53,10 @@ export default function playerActionsDisplay(onSelect, selector = "#player-actio
       });
       button.disabled = !action.available;
       button.title = action.reason || action.description || action.name;
+      if (action.gathering) button.dataset.gathering = "true";
+      else delete button.dataset.gathering;
     });
+    updateRepeatState();
 
     if (help) {
       const text = visible.length
@@ -50,5 +64,11 @@ export default function playerActionsDisplay(onSelect, selector = "#player-actio
         : "No directives available here.";
       if (help.textContent !== text) help.textContent = text;
     }
+  }
+  renderActions.setRepeatState = (actionId, active) => {
+    selectedGathering = actionId;
+    repeating = active;
+    updateRepeatState();
   };
+  return renderActions;
 }

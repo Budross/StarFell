@@ -14,17 +14,16 @@ export default function craftingDisplay(content, onAction, getActionStatus = leg
   const requirement = document.querySelector("#craft-requirement");
   const button = document.querySelector("#craft-button");
   const rows = new Map();
+  const inventoryGroups = new Map([...inventory.querySelectorAll(".collapsible-section")]
+    .map(section => [section.dataset.category, section.querySelector(".storage-readouts")]));
   for (const item of Object.values(content.items)) {
     const row = document.createElement("div");
     const label = document.createElement("dt");
     label.textContent = item.name;
     label.title = item.description ?? item.name;
-    const category = document.createElement("span");
-    category.textContent = item.category;
-    label.append(category);
     const value = document.createElement("dd");
     row.append(label, value);
-    inventory.append(row);
+    inventoryGroups.get(item.category).append(row);
     rows.set(item.id, value);
   }
   recipeSelect.addEventListener("change", () => {

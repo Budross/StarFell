@@ -70,6 +70,7 @@ export function createActionRegistry() {
       description: action.description ?? "",
       group: action.group ?? "directives",
       shortcut: action.shortcut,
+      gathering: action.gathering,
       visible,
       available: visible && !reason,
       reason

@@ -4,9 +4,10 @@ import { createGameRuntime } from "./runtime.js";
 import { createView } from "./game.js";
 import { createActionRegistry } from "./playerActions.js";
 import playerActionsDisplay from "./playerActionsDisplay.js";
+import { describeAmounts } from "./resources.js";
 import craftingDisplay from "./craftingDisplay.js";
 import processingDisplay from './processingDisplay.js';
-import { loadGame, saveGame } from "./save.js";
+import { clearGame, loadGame, saveGame } from "./save.js";
 import cargoDisplay from "./cargoDisplay.js";
 import { CircularProgress } from "./CircularProgress.js";
 import initializeEventBus, { startEventBus } from "./eventBus.js";
@@ -65,7 +66,7 @@ const bus = initializeEventBus({
 });
 
 // Register initial subscribers before queued messages are released.
-const logDisplay = consoleDisplay(bus);
+const logDisplay = consoleDisplay(bus, "#narrative-stream", (itemId, amount) => describeAmounts({ [itemId]: amount }, content));
 const tabs = terminalTabs({
   tabList: document.querySelector("#terminal-tabs"),
   panelContainer: document.querySelector("#terminal-panels")
@@ -80,6 +81,7 @@ tabs.registerTab({
     elements.feedback.setAttribute("aria-live", "off");
   },
   onDeactivate() {
+    stopRepeating();
     logDisplay.onDeactivate();
     elements.feedback.setAttribute("aria-live", "polite");
   }
@@ -129,6 +131,7 @@ let displayedLocationId = null;
 let displayedAssetAccess = null;
 let migrationNotice = "";
 let freshGame = false;
+let resettingGame = false;
 
 const runtime = createGameRuntime({ ...systems, initialState: loadOrCreateGame(), save: saveGame });
 const narrativePresentation=createNarrativePresentation(systems.narrative);
@@ -150,9 +153,29 @@ actionRegistry.initialize({ getState: runtime.getState, applyAction, getContext:
   if (actions.some(a => [a.id, a.name, ...(a.aliases ?? [])].some(name => ["talk", "people", "research", "look", "observe"].includes(name.trim().toLowerCase())))) throw new Error("talk, people, research, look, and observe are reserved presentation commands.");
 } });
 let observationActions=[];
-const renderActions = playerActionsDisplay(handleAction, "#player-actions",group=>[
+const renderActions = playerActionsDisplay(id => handleAction(id, undefined, true), "#player-actions",group=>[
   ...actionRegistry.getActions(group), ...(group==='directives'?observationActions:[])
 ]);
+let selectedGathering = null;
+let repeatTimer = null;
+let lastGatheringActionId = null;
+function stopRepeating(clearSelection = true) {
+  if (repeatTimer !== null) clearInterval(repeatTimer);
+  repeatTimer = null;
+  if (clearSelection) selectedGathering = null;
+  renderActions.setRepeatState(selectedGathering, false);
+}
+function toggleRepeating() {
+  if (!selectedGathering) return;
+  if (repeatTimer !== null) { stopRepeating(false); return; }
+  if (!actionRegistry.getActionStatus(selectedGathering).available) { stopRepeating(); return; }
+  renderActions.setRepeatState(selectedGathering, true);
+  repeatTimer = setInterval(() => {
+    if (document.hidden || document.querySelector('#operations-panel').hidden ||
+        !actionRegistry.getActionStatus(selectedGathering).available) { stopRepeating(); return; }
+    if (!handleAction(selectedGathering).ok) stopRepeating();
+  }, 1000);
+}
 const renderCrafting = craftingDisplay(content, handleAction, actionRegistry.getActionStatus);
 const renderProcessing = processingDisplay(systems.processing,handleAction);
 const renderTransfer = transferDisplay(world, content, handleAction);
@@ -197,11 +220,12 @@ function formatCycle(seconds) {
     .map(value => String(value).padStart(2, "0")).join(":");
 }
 
-function showFeedback(text, type = "system") {
+function showFeedback(text, type = "system", gathering = null) {
   bus.publish({
     author: type === "command" ? "PLAYER" : "SYSTEM",
     type,
     text,
+    gathering,
     cycle: formatCycle(runtime.getState().simulationTime)
   });
 }
@@ -304,20 +328,25 @@ function render() {
 }
 
 function applyAction(execute, action, payload) {
-  if (!["selection", "dialogue"].includes(action.group)) showFeedback(`> ${action.name}`, "command");
+  if (lastGatheringActionId && lastGatheringActionId !== action.id) logDisplay.breakGathering?.();
+  lastGatheringActionId = action.gathering ? action.id : null;
+  if (!["selection", "dialogue"].includes(action.group) && !action.gathering) showFeedback(`> ${action.name}`, "command");
   const result=runtime.applyAction(execute);
   const { previous, state, message } = result;
   renderPeople.committed(previous, state, action, payload, message);
   if (action.navigation && !state.dialogue.active) tabs.activateTab("operations");
   render();
   if (message) {
-    showFeedback(message, "system");
+    showFeedback(message, "system", action.gathering ? {
+      actionId: action.id, locationId: state.locationId, ...action.gathering
+    } : null);
   }
   safeNarrative(()=>narrativePresentation.committed(result,{action,payload}));
   return message;
 }
 
-function handleAction(actionId, payload) {
+function handleAction(actionId, payload, fromButton = false) {
+  if (selectedGathering && selectedGathering !== actionId) stopRepeating();
   try {
     if (actionId.startsWith('observe-equipment:')) {
       const state=runtime.getState();
@@ -326,14 +355,24 @@ function handleAction(actionId, payload) {
       const result=observe(choice.request);
       return {ok:result?.status==='ok',message:result?.text};
     }
-    return { ok: true, message: executeAction(actionId, payload) };
+    const message = executeAction(actionId, payload);
+    if (fromButton) {
+      const status = actionRegistry.getActionStatus(actionId);
+      if (status.gathering) {
+        selectedGathering = actionId;
+        renderActions.setRepeatState(actionId, repeatTimer !== null);
+      } else stopRepeating();
+    }
+    return { ok: true, message };
   } catch (error) {
+    if (selectedGathering === actionId) stopRepeating();
     showFeedback(error.message, "error");
     return { ok: false, message: error.message };
   }
 }
 
 function gameLoop(frameTime) {
+  if (resettingGame) return;
   if (previousFrameTime === null) {
     previousFrameTime = frameTime;
   }
@@ -364,6 +403,18 @@ elements.commandForm.addEventListener("submit", event => {
   event.preventDefault();
   const command = elements.commandInput.value.trim();
   if (!command) return;
+  if (command.toLowerCase() === "reset game") {
+    try {
+      clearGame();
+      resettingGame = true;
+      stopRepeating();
+      window.location.reload();
+    } catch (error) {
+      resettingGame = false;
+      showFeedback(`Could not reset the game: ${error.message}`, "error");
+    }
+    return;
+  }
   if (["talk", "people"].includes(command.toLowerCase())) { renderPeople.show(); elements.commandInput.value = ""; return; }
   if (command.toLowerCase() === "research") { tabs.activateTab("research"); elements.commandInput.value = ""; return; }
   if (['look','observe'].includes(command.toLowerCase())) { observeLocation(); elements.commandInput.value=''; return; }
@@ -377,8 +428,14 @@ elements.commandForm.addEventListener("submit", event => {
 });
 
 document.addEventListener("keydown", event => {
-  if (event.repeat || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey ||
+  if (event.ctrlKey || event.metaKey || event.altKey || event.shiftKey ||
       event.target.closest("input, textarea, select, [contenteditable], #people-panel")) return;
+  if (event.code === 'Space' && selectedGathering && !document.querySelector('#operations-panel').hidden) {
+    event.preventDefault();
+    if (!event.repeat) toggleRepeating();
+    return;
+  }
+  if (event.repeat) return;
   let actionId;
   try { actionId = /^[1-9]$/.test(event.key) ? resolveAction(event.key) : null; }
   catch (error) { showFeedback(error.message, "error"); return; }
@@ -392,12 +449,13 @@ document.addEventListener("visibilitychange", () => {
   // Reset the reference point so hidden time is not counted on return.
   previousFrameTime = performance.now();
 
-  if (document.hidden) {
+  if (document.hidden && !resettingGame) {
+    stopRepeating();
     runtime.flush();
   }
 });
 
-window.addEventListener("pagehide", () => runtime.flush());
+window.addEventListener("pagehide", () => { if (!resettingGame) runtime.flush(); });
 
 runtime.flush();
 render();

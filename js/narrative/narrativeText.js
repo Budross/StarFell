@@ -22,6 +22,7 @@ export function createTextRealizer(content) {
     const salt=canonical([content.seed,content.version,context.surface,context.subject,context.speaker?.tone,beat.id,beat.meaning]);
     const family=templates[beat.family]; if (!family) throw new Error('Unknown narrative family: '+beat.family);
     const slots={...beat.slots};
+    if (slots.name && ['equipment_group','process_run'].includes(beat.meaning?.subject?.type)) slots.name=content.lexicon.equipmentNames[slots.name] ?? slots.name;
     if (slots.conditionBand) { const words=content.lexicon.condition[slots.conditionBand]; if (!words?.length) throw new Error('Unknown condition lexicon.'); slots.condition=words[hash(salt+':condition')%words.length]; delete slots.conditionBand; }
     if (family.slots.some(k => !['string','number'].includes(typeof slots[k])) || Object.keys(slots).some(k => !family.slots.includes(k))) throw new Error('Invalid resolved slots: '+beat.family);
     const variant=family.variants[hash(salt+':variant')%family.variants.length];

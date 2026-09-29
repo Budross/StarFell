@@ -30,7 +30,8 @@ export function createItemActions(content, effectServices, ledgerServices) {
     for (const source of item.acquisition) {
       const cost = source.cost ?? {};
       const reward = { [item.id]: source.amount };
-      add({ ...source, description: `${describeAmounts(cost, content)}${Object.keys(cost).length ? " → " : "+"}${describeAmounts(reward, content)}`,
+      add({ ...source, gathering: { itemId: item.id, amount: source.amount },
+        description: `${describeAmounts(cost, content)}${Object.keys(cost).length ? " → " : "+"}${describeAmounts(reward, content)}`,
         visible: state => allowed(state, source.conditions),
         requirement: state => transferReason(state, cost, reward, content),
         execute(state, context) { transfer(storeFor(state, context), cost, reward, content); return `Recovered ${describeAmounts(reward, content)}.`; } });

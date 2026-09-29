@@ -16,8 +16,12 @@ export function createNarrativeSystem({providers,world,people,content,source=nar
       if (context.speaker) segments.push({text:context.speaker.greeting});
       else if (context.subject.type==='equipment_group') {
         const group=context.facts.find(f=>['equipment_condition','equipment_activity'].includes(f.kind) && f.data.equipmentId===context.subject.equipmentId);
-        if (group) segments.push({text:group.data.name+'.'});
-      } else segments.push({text:context.facts.find(f=>f.kind==='location_identity').data.baseText});
+        if (group && !selection.beats.length) segments.push({text:`I inspect ${authored.lexicon.equipmentNames[group.data.name] ?? group.data.name}.`});
+      } else {
+        const identity=context.facts.find(f=>f.kind==='location_identity').data;
+        const fallback=`${identity.name} is your current location.`;
+        segments.push({text:authored.bases[identity.baseText] ?? (identity.baseText===fallback?`I am at ${identity.name}.`:identity.baseText)});
+      }
     }
     segments.push(...realize(context,selection.beats));
     const prose=segments.map(s=>s.text).join('\n\n');

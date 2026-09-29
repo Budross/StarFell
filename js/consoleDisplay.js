@@ -34,7 +34,7 @@ const DEFAULT_PRESENTATION = Object.freeze({
   showAuthor: true
 });
 
-export default function consoleDisplay(eventBus, selector = "#narrative-stream") {
+export default function consoleDisplay(eventBus, selector = "#narrative-stream", describeGathering = null) {
   const stream = document.querySelector(selector);
 
   if (!stream) {
@@ -45,6 +45,7 @@ export default function consoleDisplay(eventBus, selector = "#narrative-stream")
 
   let visible = true;
   let position = { followTail: true, anchors: [] };
+  let lastGathering = null;
 
   function capturePosition() {
     const top = stream.getBoundingClientRect().top;
@@ -70,6 +71,9 @@ export default function consoleDisplay(eventBus, selector = "#narrative-stream")
   }
 
   return {
+    breakGathering() {
+      lastGathering = null;
+    },
     onDeactivate() {
       position = capturePosition();
       visible = false;
@@ -90,6 +94,18 @@ export default function consoleDisplay(eventBus, selector = "#narrative-stream")
 
   function displayMessage(message) {
     if (visible) position = capturePosition();
+
+    const gathering = message.gathering;
+    const latest = stream.lastElementChild;
+    if (gathering && lastGathering?.entry === latest &&
+        lastGathering.actionId === gathering.actionId &&
+        lastGathering.locationId === gathering.locationId && describeGathering) {
+      lastGathering.amount += gathering.amount;
+      latest.querySelector('p').textContent = `Recovered ${describeGathering(gathering.itemId, lastGathering.amount)}.`;
+      if (visible) restorePosition();
+      return;
+    }
+    lastGathering = null;
 
     const entry = document.createElement("div");
     entry.classList.add("log-entry");
@@ -129,6 +145,8 @@ export default function consoleDisplay(eventBus, selector = "#narrative-stream")
     }
 
     stream.append(entry);
+    if (gathering) lastGathering = { entry, actionId: gathering.actionId,
+      locationId: gathering.locationId, amount: gathering.amount };
 
     while (stream.querySelectorAll('.log-entry').length > 100) {
       stream.querySelector('.log-entry').remove();

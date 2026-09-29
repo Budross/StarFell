@@ -6,10 +6,9 @@
   <meta name="theme-color" content="#191d1c">
   <title>Habitat 05 — Operations Terminal</title>
   <link rel="stylesheet" href="./style.css">
-  
+  <script type="module" src="./js/app.js"></script>
 </head>
 <body>
-  <script type="module" src="./js/app.js"></script>
   <main class="console">
     <header class="status-header">
       <a class="habitat-mark" href="./" aria-label="Habitat 05 operations"><span class="habitat-icon" aria-hidden="true">◆</span> <strong id="current-location">Habitat 05</strong></a>
@@ -33,7 +32,7 @@
                 <button id="tour-start" type="button" class="people-shortcut">Tour terminal</button>
                 <button id="research-shortcut" type="button" class="people-shortcut">Open Research</button>
                 <button id="people-shortcut" type="button" class="people-shortcut">People here</button>
-                <div class="directive-heading"><h2 id="actions-heading">AVAILABLE DIRECTIVES</h2><span>CLICK OR TYPE A NUMBER</span></div>
+                <div class="directive-heading"><h2 id="actions-heading">AVAILABLE DIRECTIVES</h2><span>CLICK OR TYPE A NUMBER · SPACE TO REPEAT GATHERING</span></div>
                 <div id="player-actions" class="actions" tabindex="-1" role="group" aria-label="Available directives"></div>
                 <p id="research-opening-hint" class="research-opening-hint"></p>
               </section>
@@ -48,7 +47,20 @@
                 <div class="module-heading"><h3 id="storage-heading">01 <span>MATERIAL STORAGE</span></h3><span>CARGO</span></div>
                 <p id="inventory-location" class="local-store-label"></p>
                 <p id="cargo-summary" class="cargo-summary" role="status"></p>
-                <dl id="item-inventory" class="storage-readouts"></dl>
+                <div id="item-inventory" class="collapsible-list">
+                  <details class="collapsible-section" data-category="resource" open>
+                    <summary>Resources</summary>
+                    <dl class="storage-readouts" tabindex="0" aria-label="Resources in storage"></dl>
+                  </details>
+                  <details class="collapsible-section" data-category="component">
+                    <summary>Components</summary>
+                    <dl class="storage-readouts" tabindex="0" aria-label="Components in storage"></dl>
+                  </details>
+                  <details class="collapsible-section" data-category="product">
+                    <summary>Products</summary>
+                    <dl class="storage-readouts" tabindex="0" aria-label="Products in storage"></dl>
+                  </details>
+                </div>
                 <form id="discard-form" class="module-content discard-content">
                   <h4>Discard cargo</h4>
                   <label>Stored item<select id="discard-asset"></select></label>

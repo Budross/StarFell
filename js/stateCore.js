@@ -4,6 +4,7 @@ import { createResearchState } from './research/researchState.js';
 import { seedEntities, validateSpawnIds, initialLocationState, initialNpcState } from './entityCreation.js';
 import { makeEntity, getEntity, isPrincipal, record, validEntityId, entitySequence } from './entities.js';
 import { createStateLifecycle } from './stateComposition.js';
+import { migrateConsolidatedAreas } from './locationAreaMigration.js';
 
 export const SAVE_VERSION = 9;
 
@@ -58,13 +59,15 @@ function migrateIdentities(state, world, people, notices, saved) {
 export function migrateState(saved, content, world, people, notices = [], research, legacyStorage, lifecycle) {
   if (!record(saved) || !Number.isInteger(saved.saveVersion) || saved.saveVersion < 1 || saved.saveVersion > SAVE_VERSION) throw new Error('Unsupported or missing save data.');
   validateSpawnIds(world, people, world.principals ?? {});
+  const relocated = structuredClone(saved);
+  migrateConsolidatedAreas(relocated, world, notices);
   let state;
   if (saved.saveVersion < 8) {
-    const legacy = structuredClone(saved); delete legacy.entities; delete legacy.entityIds;
+    const legacy = relocated; delete legacy.entities; delete legacy.entityIds;
     state = migrateV7(legacy, content, world, people, notices, research, legacyStorage);
-    migrateIdentities(state, world, people, notices, saved);
+    migrateIdentities(state, world, people, notices, relocated);
   } else {
-    state = structuredClone(saved);
+    state = relocated;
   }
   if (saved.saveVersion < 9) { state.processing = { nextRunId: 1, runs: {} }; state.saveVersion = 9; }
   const currentLifecycle = lifecycle ?? createStateLifecycle({ content, world, people, research });
