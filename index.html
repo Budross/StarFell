@@ -139,7 +139,8 @@
         </section>
         <section class="instrument flow-module" aria-labelledby="flow-heading">
           <div class="module-heading"><h3 id="flow-heading">03 <span>POWER FLOW</span></h3><span>5 MIN</span></div>
-          <div id="power-flow-widget" aria-label="Net power flow over the last five minutes"></div>
+          <p id="wattmeter-description" class="sr-only">Live net power flow in units per second. The needle points right while charging and left while drawing from the reserve. Peaks cover the last five minutes.</p>
+          <div id="wattmeter-widget" role="group" aria-label="Live power flow meter" aria-describedby="wattmeter-description"></div>
         </section>
         <section class="instrument" aria-labelledby="systems-heading">
           <div class="module-heading"><h3 id="systems-heading">04 <span>INSTALLED SYSTEMS</span></h3><span>ARRAY</span></div>

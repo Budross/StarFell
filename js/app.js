@@ -17,7 +17,7 @@ import locationDisplay from "./locationDisplay.js";
 import transferDisplay from "./transferDisplay.js";
 import { validateActionScopes, startupMessages } from "./locations.js";
 import { shipGraphView, shipStatus } from "./ships.js";
-import { PowerFlowWidget } from "../widgetDEMO/power-flow-widget.js";
+import { WattmeterWidget } from "./wattmeter-widget.js";
 import dialogueDisplay from "./dialogueDisplay.js";
 import researchDisplay from "./research/researchDisplay.js";
 import { createNarrativePresentation } from './narrativePresentation.js';
@@ -115,13 +115,8 @@ progressBarPower.el.style.width = "";
 progressBarPower.el.style.height = "";
 progressBarPower.el.style.display = "";
 
-let powerFlowWidget = new PowerFlowWidget("#power-flow-widget", {
-  unit: "U/sec",
-  chartWidth: 360,
-  chartHeight: 240,
-  stretchToFit: false
-});
-let lastPowerFlowSample = -Infinity;
+let wattmeterWidget = null;
+let lastWattmeterSample = -Infinity;
 let lastPowerRate = null;
 let displayedLocationId = null;
 let displayedAssetAccess = null;
@@ -275,9 +270,12 @@ function render() {
     document.querySelector("#power-location").textContent = context.definition.name;
     document.title = context.definition.name + " — Operations Terminal";
     document.documentElement.style.setProperty("--location-tint", context.definition.color);
-    powerFlowWidget.destroy();
-    powerFlowWidget = new PowerFlowWidget("#power-flow-widget", { unit: "U/sec", chartWidth: 360, chartHeight: 240, stretchToFit: false });
-    lastPowerFlowSample = -Infinity; lastPowerRate = null;
+    wattmeterWidget?.destroy();
+    wattmeterWidget = new WattmeterWidget("#wattmeter-widget", {
+      title: "POWER FLOW", unit: "U", rate: "/sec",
+      dialTitle: "POWER", dialLegend: "U/SEC", decades: 5
+    });
+    lastWattmeterSample = -Infinity; lastPowerRate = null;
   }
   const navigation = document.querySelector("#navigation-status");
   navigation.hidden = !context.definition.mobile;
@@ -292,9 +290,9 @@ function render() {
   elements.powerRate.textContent = `${view.powerRate >= 0 ? "+" : ""}${format(view.powerRate)}/sec`;
   // Sample once per active second, and immediately when an action changes flow.
   // Reuse the visible-page loop so hidden tabs do not collect simulated history.
-  if (context.permissions.viewCargo && (view.simulationTime - lastPowerFlowSample >= 1 || view.powerRate !== lastPowerRate)) {
-    powerFlowWidget.push(view.powerRate);
-    lastPowerFlowSample = view.simulationTime;
+  if (context.permissions.viewCargo && (view.simulationTime - lastWattmeterSample >= 1 || view.powerRate !== lastPowerRate)) {
+    wattmeterWidget.push(view.powerRate);
+    lastWattmeterSample = view.simulationTime;
     lastPowerRate = view.powerRate;
   }
   progressBarPower.setProgress(capacityPercentage(view.power, view.powerCapacity));

@@ -950,45 +950,45 @@ meter::-moz-meter-bar {
   opacity:.4
 }
 
-#power-flow-widget {
-  position:relative;
+#wattmeter-widget {
   width:100%;
-  height:auto;
-  aspect-ratio:3 / 2;
-  min-height:170px;
-  overflow:hidden
+  min-width:0
 }
 
-#power-flow-widget .pfw-card {
-  --pfw-text-dim:#94a589;
-  --pfw-grid:#91a17b18;
+#wattmeter-widget .wmw-card {
+  max-width:none;
+  padding:0 0 14px;
   border:0;
   border-radius:0;
-  padding:6px 0 10px;
   background:transparent;
   box-shadow:none;
-  font-family:inherit;
-  height:100%;
-  display:flex;
-  flex-direction:column
+  font-family:inherit
 }
 
-#power-flow-widget .pfw-header,#power-flow-widget .pfw-readout,#power-flow-widget .pfw-y-axis-title {
+#wattmeter-widget .wmw-card::before,#wattmeter-widget .wmw-card::after,
+#wattmeter-widget .wmw-header {
   display:none
 }
 
-#power-flow-widget .pfw-chart-wrap {
-  flex:1;
-  min-height:0;
-  margin:0
+#wattmeter-widget .wmw-dial {
+  margin-top:12px;
+  padding:5px
 }
 
-#power-flow-widget .pfw-chart-wrap svg {
-  height:100%
+#wattmeter-widget .wmw-readout {
+  grid-template-columns:minmax(0,1fr);
+  gap:10px;
+  margin-top:12px
 }
 
-#power-flow-widget .pfw-axis-label {
-  font-size:11px
+#wattmeter-widget .wmw-value {
+  font-size:clamp(17px,1.7vw,23px)
+}
+
+#wattmeter-widget .wmw-peaks {
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:4px 8px;
+  text-align:right
 }
 
 @keyframes blink {
