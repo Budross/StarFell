@@ -25,12 +25,7 @@ import { equipmentObservationActions } from './narrativeActions.js';
 import shipyardDisplay from './shipyardDisplay.js';
 import vesselControlsDisplay from './vesselControlsDisplay.js';
 import createUiTour from './uiTour.js';
-
-const FIRST_RUN_INTRO = [
-  'The terminal glows in the half-light of Habitat 05. Beyond the viewport, unfinished collectors turn slowly against the glare, their shadows passing over the walls. The power conduit hums beneath your feet. A warning remains lit for the solar array: a structural fitting is badly damaged, and the array is producing only a fraction of what it should.',
-  'Near the array, a fractured bracket still holds the shape of its missing piece. A closer inspection might reveal how it was made. Outside, recoverable metal lies among the local wreckage—enough, perhaps, to make a replacement if you can bring some back.',
-  'The research bench can turn that scrap and what you learned from the fitting into a workable design. If you can research a new design, the Workshop can fabricate the parts. Then you can return to the array and try to restore its output.'
-];
+import { firstRunMessages } from './streamContent.js';
 
 const systems = buildGameSystems();
 const { content, world, people, research, actions, contextFor } = systems;
@@ -93,6 +88,7 @@ tabs.registerTab({ id: "people", label: "People", panel: document.querySelector(
   onDeactivate() { elements.feedback.setAttribute("aria-live", "polite"); }
 });
 tabs.registerTab({ id: "research", label: "Research", panel: document.querySelector("#research-panel") });
+tabs.registerTab({ id: "knowledge", label: "Knowledge", panel: document.querySelector("#knowledge-panel") });
 tabs.registerTab({ id: "shipyard", label: "Shipyard", panel: document.querySelector("#shipyard-panel") });
 tabs.activateTab("operations");
 createUiTour(tabs);
@@ -136,7 +132,7 @@ let resettingGame = false;
 const runtime = createGameRuntime({ ...systems, initialState: loadOrCreateGame(), save: saveGame });
 const narrativePresentation=createNarrativePresentation(systems.narrative);
 const openingState = runtime.getState();
-const tutorials=freshGame ? FIRST_RUN_INTRO : startupMessages(openingState,world,content);
+const tutorials=freshGame ? firstRunMessages() : startupMessages(openingState,world,content);
 if (!freshGame) safeNarrative(()=>systems.narrative.describe(openingState,{surface:'inspect_location',subjectId:openingState.locationId},
   {suppressTopics:tutorials.length?['equipment_condition']:[]}),false);
 if (migrationNotice) bus.publish({ author: "SYSTEM", type: "system", text: migrationNotice });

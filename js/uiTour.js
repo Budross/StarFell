@@ -4,6 +4,8 @@ const STEPS = [
     text: 'Inspect the damaged fitting and gather nearby salvage here. The activity stream records what you learn and what changes.' },
   { tab: 'research', target: '#research-form', title: 'Research',
     text: 'Take gathered materials to the research bench. Select samples and run experiments to uncover designs.' },
+  { tab: 'knowledge', target: '#research-knowledge', title: 'Knowledge',
+    text: 'Review the discoveries and areas of understanding you have built through research.' },
   { tab: 'workshop', target: '#recipe-select', title: 'Workshop',
     text: 'New designs appear as recipes here. Fabricate parts from stored materials, then use Operations directives to install or repair equipment.' },
   { tab: 'locations', target: '#location-map', title: 'Locations',

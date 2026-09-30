@@ -1,22 +1,23 @@
-import { getEntityLabel } from "../entityQueries.js";
 import { researchInputView } from "./researchView.js";
 import { formatQuantity } from "../quantities.js";
 import { describeAmounts } from "../resources.js";
 
 export default function researchDisplay(system, onAction, openTab) {
   const panel = document.querySelector("#research-panel");
+  const knowledgePanel = document.querySelector("#knowledge-panel");
   panel.innerHTML = `<div class="research-heading"><div><p class="research-eyebrow">FIELD NOTES / EXPERIMENTAL SCIENCE</p><h2>Research workbench</h2></div><span id="research-location"></span></div>
-    <div class="research-layout"><section class="research-workbench" aria-labelledby="research-experiment-heading">
+    <div class="research-layout"><aside class="research-hint"><h3>Try next</h3><p id="research-hint"></p></aside>
+    <section class="research-workbench" aria-labelledby="research-experiment-heading">
       <h3 id="research-experiment-heading">01 / Experiment</h3><p id="research-facility" class="research-muted"></p>
       <form id="research-form"><label class="research-method-label" for="research-method">Method</label><select id="research-method"></select>
       <fieldset><legend>Samples <span>One sample of each selected material or item</span></legend><div id="research-samples"></div><p id="research-empty" class="research-muted"></p></fieldset>
       <p id="research-cost"></p><p id="research-profile" class="research-muted"></p><p id="research-reason"></p>
       <button id="research-submit" type="submit" disabled>Run experiment</button></form>
-      <aside class="research-hint"><h3>Try next</h3><p id="research-hint"></p></aside>
-      <p class="research-muted">Useful experiments always advance your understanding. Chance can add insight. Related setups share diminishing returns; exhausted setups spend nothing.</p>
-    </section><div class="research-notes"><section aria-labelledby="research-knowledge-heading"><h3 id="research-knowledge-heading">02 / Discovered knowledge</h3><div id="research-knowledge"></div><p id="research-legacy" class="research-muted" hidden>Earlier fabrication knowledge was preserved when this save was updated.</p><div id="research-families"></div></section>
-      <section aria-labelledby="research-journal-heading"><h3 id="research-journal-heading">03 / Observations</h3><p id="research-count" class="research-muted"></p><ol id="research-journal"></ol></section></div></div>`;
+    </section><section class="research-notes" aria-labelledby="research-journal-heading"><h3 id="research-journal-heading">02 / Observations</h3><p id="research-count" class="research-muted"></p><ol id="research-journal"></ol></section></div>`;
+  knowledgePanel.innerHTML = `<div class="research-heading"><div><p class="research-eyebrow">FIELD NOTES / WHAT YOU KNOW</p><h2>Discovered knowledge</h2></div></div>
+    <div id="research-knowledge"></div><p id="research-legacy" class="research-muted" hidden>Earlier fabrication knowledge was preserved when this save was updated.</p><div id="research-families"></div>`;
   const $ = id => panel.querySelector(`#research-${id}`);
+  const knowledge = id => knowledgePanel.querySelector(`#research-${id}`);
   const form = $("form"), method = $("method"), sampleList = $("samples");
   const setText = (element, value) => { if (element.textContent !== value) element.textContent = value; };
   const element = (tag, text, className) => { const el = document.createElement(tag); el.textContent = text; if (className) el.className = className; return el; };
@@ -75,25 +76,35 @@ export default function researchDisplay(system, onAction, openTab) {
     if (journalSignature === nextJournal) return;
     journalSignature = nextJournal;
     const known = system.catalog.orderedDiscoveries.filter(d => state.knowledge.discoveries[d.id]);
-    $("knowledge").replaceChildren();
-    if (!known.length) $("knowledge").append(element("p", "Discoveries will appear here as your observations come together.", "research-muted"));
+    knowledge("knowledge").replaceChildren();
+    if (!known.length) knowledge("knowledge").append(element("p", "Discoveries will appear here as your observations come together.", "research-muted"));
     for (const discovery of known) {
       const card = element("article", "", "research-discovery");
-      card.append(element("h4", discovery.name), element("p", discovery.description)); $("knowledge").append(card);
+      card.append(element("h4", discovery.name), element("p", discovery.description)); knowledge("knowledge").append(card);
     }
-    $("legacy").hidden = !state.research.legacyKnowledge;
-    $("families").replaceChildren();
+    knowledge("legacy").hidden = !state.research.legacyKnowledge;
+    knowledge("families").replaceChildren();
     for (const [id, exposure] of Object.entries(state.research.exposure).filter(([, n]) => n > 0)) {
-      $("families").append(element("span", `${system.catalog.families[id].name}: ${exposure >= 40 ? "familiar" : exposure >= 15 ? "developing" : "emerging"}`, "research-family"));
+      knowledge("families").append(element("span", `${system.catalog.families[id].name}: ${exposure >= 40 ? "familiar" : exposure >= 15 ? "developing" : "emerging"}`, "research-family"));
     }
-    setText($("count"), state.research.attemptCount ? `${state.research.attemptCount} experiments recorded · Showing the latest ${state.research.attempts.length}` : "No experiments recorded yet.");
+    const recent = [];
+    let previousItems = null;
+    for (const attempt of state.research.attempts) {
+      const items = [...attempt.inputs].sort().join("\u0000");
+      if (items === previousItems) recent[recent.length - 1] = attempt;
+      else recent.push(attempt);
+      previousItems = items;
+    }
+    setText($("count"), state.research.attemptCount
+      ? `${state.research.attemptCount} experiment${state.research.attemptCount === 1 ? "" : "s"} recorded · ${recent.length} recent result${recent.length === 1 ? "" : "s"}`
+      : "No experiments recorded yet.");
     $("journal").replaceChildren();
-    for (const attempt of [...state.research.attempts].reverse()) {
+    for (const attempt of recent.reverse()) {
       const entry = element("li", "");
-      entry.append(element("h4", `Experiment ${attempt.id} · ${attempt.inputs.map(id => system.content.items[id].name).join(" + ")}`));
-      entry.append(element("small", `${(attempt.locationName ?? getEntityLabel(state, system, attempt.locationId))} · ${system.catalog.methods[attempt.methodId].name} · Cycle ${Math.floor(attempt.time)}s`));
-      for (const observation of attempt.observations) entry.append(element("p", observation));
-      if (attempt.discoveries.length) entry.append(element("p", `Discovered: ${attempt.discoveries.map(id => system.catalog.discoveries[id].name).join(", ")}`, "research-learned"));
+      entry.append(element("h4", attempt.inputs.map(id => system.content.items[id].name).join(" + ")));
+      entry.append(element("p", attempt.discoveries.length
+        ? `Discovered: ${attempt.discoveries.map(id => system.catalog.discoveries[id].name).join(", ")}`
+        : "Progress made toward a discovery.", attempt.discoveries.length ? "research-learned" : "research-muted"));
       $("journal").append(entry);
     }
   }

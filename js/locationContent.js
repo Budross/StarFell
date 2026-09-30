@@ -25,7 +25,10 @@ export const locationDefinitions = {
     vicinity: { name: "Habitat 05 vicinity", type: "area", position: [0, 0],
       remoteDescription: "A sheltered cluster of installations in the inner swarm.",
       description: "Habitat 05 hangs among unfinished collectors. Navigation beacons outline the nearby platforms." },
-    outerReach: { name: "Shattered Asteroid", type: "area", position: [40, 0],
+    outerReach: { name: "Shattered Asteroid", type: "area", position: [
+  40,
+  10
+],
       remoteDescription: "A broken asteroid surrounded by mineral-rich fragments and a derelict relay.",
       description: "Fragments of a shattered asteroid drift among silent collectors. Extraction berths and a derelict relay lie within the debris field." },
     habitat: { name: "Habitat 05", type: "habitat", areaId: "vicinity", initialOwnerId: "player",
