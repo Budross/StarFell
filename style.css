@@ -195,6 +195,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,[t
   min-width:0
 }
 
+.terminal-housing {
+  padding-bottom:8px
+}
+
 .panel-label {
   height:31px;
   display:flex;
@@ -412,21 +416,21 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,[t
 
 .actions {
   display:grid;
-  gap:3px
+  gap:2px
 }
 
 .actions button {
   display:flex;
   align-items:center;
-  gap:13px;
+  gap:10px;
   width:100%;
   border:1px solid transparent;
   background:transparent;
   padding:8px 8px;
-  min-height:40px;
+  min-height:20px;
   color:var(--amber);
   text-align:left;
-  font-size:16px
+  font-size:12px
 }
 
 .hotkey {
@@ -543,34 +547,6 @@ input::placeholder {
   font-size:8px;
   color:#b09460;
   margin-top:6px
-}
-
-.terminal-bottom {
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  height:39px;
-  font-size:8px;
-  color:#8b9688;
-  letter-spacing:.06em
-}
-
-.terminal-bottom>span:first-child {
-  display:flex;
-  align-items:center;
-  gap:7px
-}
-
-.terminal-bottom .status-light {
-  width:4px;
-  height:4px
-}
-
-.vents {
-  width:65px;
-  height:13px;
-  background:repeating-linear-gradient(90deg,#0d130e 0,#0d130e 3px,transparent 3px,transparent 6px)
 }
 
 .instrument-bay {
@@ -1015,29 +991,6 @@ meter::-moz-meter-bar {
   font-size:11px
 }
 
-.console-footer {
-  min-height:38px;
-  padding:11px 26px;
-  display:flex;
-  justify-content:space-between;
-  gap:15px;
-  border-top:1px solid #101710;
-  color:#818d7c;
-  font-size:8px;
-  letter-spacing:.1em
-}
-
-.console-footer>span:first-child {
-  display:flex;
-  align-items:center;
-  gap:8px
-}
-
-.console-footer .status-light {
-  width:4px;
-  height:4px
-}
-
 @keyframes blink {
   50% {
     opacity:0
@@ -1129,7 +1082,7 @@ meter::-moz-meter-bar {
     grid-template-columns:minmax(0,1fr)
   }
   .crt {
-    height:710px
+    height:752px
   }
   .instrument-bay {
     display:grid;
@@ -1149,12 +1102,6 @@ meter::-moz-meter-bar {
   }
   .resource-widget {
     max-width:150px
-  }
-  .terminal-bottom {
-    height:42px
-  }
-  .console-footer>span:last-child {
-    display:none
   }
 }
 
@@ -1208,23 +1155,17 @@ meter::-moz-meter-bar {
   }
   .actions button {
     gap:9px;
-    font-size:12px;
+    font-size:18px;
     padding:10px 1px
   }
   .actions small {
     font-size:7px
   }
   .crt {
-    height:740px
+    height:782px
   }
   .command-line {
     padding:8px
-  }
-  .terminal-bottom>span:nth-child(2) {
-    font-size:6px
-  }
-  .vents {
-    width:38px
   }
   .instrument-bay {
     grid-template-columns:1fr
@@ -1235,11 +1176,6 @@ meter::-moz-meter-bar {
     justify-content:center;
     padding-inline:12px
   }
-  .console-footer {
-    font-size:6px;
-    padding-inline:12px;
-    letter-spacing:.02em
-  }
 }
 
 /* Use the viewport as the enclosure; each screen scrolls within its frame. */
@@ -1248,7 +1184,7 @@ meter::-moz-meter-bar {
     height:100dvh;
     min-height:620px;
     display:grid;
-    grid-template-rows:auto minmax(0,1fr) auto;
+    grid-template-rows:auto minmax(0,1fr);
   }
   .console-body {
     min-height:0;
@@ -1256,7 +1192,7 @@ meter::-moz-meter-bar {
   .terminal-housing {
     min-height:0;
     display:grid;
-    grid-template-rows:31px minmax(0,1fr) 39px;
+    grid-template-rows:31px minmax(0,1fr);
   }
   .crt {
     height:auto;
@@ -1607,7 +1543,7 @@ meter::-moz-meter-bar {
   .directive-heading h2 { font-size:16px; }
   .directive-heading>span { font-size:14px; }
   .actions { gap:6px; }
-  .actions button { min-height:56px; padding:10px 12px; font-size:22px; }
+  .actions button { min-height:56px; padding:10px 12px; font-size:18px; }
   .hotkey { font-size:22px; }
   .actions small { font-size:17px; }
 }
