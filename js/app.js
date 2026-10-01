@@ -91,7 +91,6 @@ tabs.registerTab({ id: "research", label: "Research", panel: document.querySelec
 tabs.registerTab({ id: "knowledge", label: "Knowledge", panel: document.querySelector("#knowledge-panel") });
 tabs.registerTab({ id: "shipyard", label: "Shipyard", panel: document.querySelector("#shipyard-panel") });
 tabs.activateTab("operations");
-createUiTour(tabs);
 bus.subscribe({}, message => {
   if (!["system", "error", "narrative"].includes(message.type)) return;
   elements.feedback.textContent = message.text;
@@ -125,6 +124,7 @@ let freshGame = false;
 let resettingGame = false;
 
 const runtime = createGameRuntime({ ...systems, initialState: loadOrCreateGame(), save: saveGame });
+createUiTour(tabs);
 const narrativePresentation=createNarrativePresentation(systems.narrative);
 const openingState = runtime.getState();
 const tutorials=freshGame ? firstRunMessages() : startupMessages(openingState,world,content);

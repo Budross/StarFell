@@ -15,9 +15,21 @@ const STEPS = [
   { tab: 'shipyard', target: '#yard-canvas', title: 'Shipyard',
     text: 'Later, build ships and drones from fabricated modules. Their controls appear in Locations.' }
 ];
+const TOUR_SEEN_KEY = 'habitat-07-tour-seen';
+
+function hasSeenTour() {
+  try { return localStorage.getItem(TOUR_SEEN_KEY) === 'true'; }
+  catch { return false; }
+}
+
+function rememberTourSeen() {
+  try { localStorage.setItem(TOUR_SEEN_KEY, 'true'); }
+  catch { /* The current-page cue still clears when storage is unavailable. */ }
+}
 
 export default function createUiTour(tabs) {
   const start = document.querySelector('#tour-start');
+  start.classList.toggle('ui-tour-start-nudge', !hasSeenTour());
   const card = document.createElement('aside');
   card.className = 'ui-tour';
   card.hidden = true;
@@ -77,6 +89,8 @@ export default function createUiTour(tabs) {
   }
 
   start.addEventListener('click', () => {
+    start.classList.remove('ui-tour-start-nudge');
+    rememberTourSeen();
     if (index >= 0) return;
     previousTab = tabs.getActiveTabId();
     previousFocus = document.activeElement;

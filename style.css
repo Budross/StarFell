@@ -1400,6 +1400,14 @@ meter::-moz-meter-bar {
 .people-error:empty { display:none; }
 .people-error { color:#efa08a; font-size:12px; line-height:1.6; padding:12px 20px; border-top:1px solid #806d3940; }
 .people-shortcut { float:right; font-size:11px; margin:0 0 8px 12px; padding:6px 10px; min-height:32px; }
+.ui-tour-start-nudge { animation:tour-terminal-nudge 2.8s ease-in-out infinite; }
+@keyframes tour-terminal-nudge {
+  0%,100% { box-shadow:0 0 0 0 #e5b56800; border-color:#806d3940; }
+  50% { box-shadow:0 0 0 4px #e5b56855; border-color:var(--amber); }
+}
+@media (prefers-reduced-motion:reduce) {
+  .ui-tour-start-nudge { border-color:var(--amber); box-shadow:0 0 0 4px #e5b56855; }
+}
 .conversation-resume { font-size:11px; padding:6px 10px; min-height:32px; margin-bottom:6px; }
 .conversation-resume[hidden],.people-panel [hidden] { display:none!important; }
 .crt:has(#people-panel:not([hidden])) .conversation-resume { display:none; }
