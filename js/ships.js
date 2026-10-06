@@ -6,7 +6,7 @@ import { isTerminal } from "./entities.js";
 import { propulsionOutput } from "./equipment.js";
 import { pay } from "./resources.js";
 import { conditionReason } from "./conditionContext.js";
-import { getLocationContext, isKnown, graphView } from "./locations.js";
+import { getLocationContext, isKnown, graphView, physicalLinks } from "./locations.js";
 import { deriveVessel, vesselSpeed } from './vessels.js';
 import { consumeVesselFuel } from './vesselFuel.js';
 import { VESSEL_REFERENCE_MASS_KG } from './vesselModuleCatalog.js';
@@ -50,43 +50,48 @@ export function journeyQuote(state, targetId, world, content, shipId = state.loc
 }
 
 export function navigationReason(state, operation, targetId, world, content, shipId = state.locationId, actorId = "player") {
-  if (state.entities && !isEntityActive(state, shipId)) return "This ship or site is unavailable.";
+  return previewNavigation(state,operation,targetId,world,content,shipId,actorId).reason;
+}
+export function previewNavigation(state, operation, targetId, world, content, shipId = state.locationId, actorId = "player") {
+  const result=(reason,code='BLOCKED')=>({ok:!reason,reason,code:reason ? code:null});
+  if (!state.locations[shipId] || !locationDefinition(state,world,shipId)) return result('This ship or site is unavailable.');
+  if (state.entities && !isEntityActive(state, shipId)) return result("This ship or site is unavailable.");
   const current = getLocationContext(state, content, world, shipId, actorId);
   const target = locationDefinition(state, world, targetId);
   if (operation === "board") {
-    if (!target?.mobile) return "Choose a ship to board.";
-    if (target.boardable === false) return 'Autonomous vessels cannot carry occupants.';
-    if (current.definition.mobile) return "Disembark at a site before boarding another ship.";
+    if (!target?.mobile) return result("Choose a ship to board.");
+    if (target.boardable === false) return result('Autonomous vessels cannot carry occupants.');
+    if (current.definition.mobile) return result("Disembark at a site before boarding another ship.");
     const ship = state.locations[targetId];
-    if (ship.journey || ship.dockedAtId !== current.id || ship.areaId !== current.local.areaId) return "The ship must be docked at your current site.";
-    if (!isKnown(state, world, content, targetId)) return "This ship is not yet known.";
-    return permissionReason(state, actorId, targetId, "enter") || conditionReason(current.actionState, target.accessConditions, content);
+    if (ship.journey || ship.dockedAtId !== current.id || ship.areaId !== current.local.areaId) return result("The ship must be docked at your current site.");
+    if (!isKnown(state, world, content, targetId)) return result("This ship is not yet known.");
+    return result(permissionReason(state, actorId, targetId, "enter") || conditionReason(current.actionState, target.accessConditions, content));
   }
-  if (!current.definition.mobile) return "Board a ship to travel between locations.";
-  if (current.local.journey) return "A journey is already in progress. Wait for arrival.";
-  if (!["board", "disembark"].includes(operation) && !canUse(state, actorId, shipId, "pilot") && !(actorId === "player" && state.locationId === shipId && canUse(state, actorId, shipId, "passengerNavigation"))) return "Requires pilot permission.";
-  if (operation === "undock") return current.local.dockedAtId ? "" : "The ship is already undocked.";
-  if (!target || !isKnown(state, world, content, targetId)) return "This destination is not yet known.";
+  if (!current.definition.mobile) return result("Board a ship to travel between locations.");
+  if (current.local.journey) return result("A journey is already in progress. Wait for arrival.",'JOURNEY');
+  if (!["board", "disembark"].includes(operation) && !canUse(state, actorId, shipId, "pilot") && !(actorId === "player" && state.locationId === shipId && canUse(state, actorId, shipId, "passengerNavigation"))) return result("Requires pilot permission.");
+  if (operation === "undock") return result(current.local.dockedAtId ? "" : "The ship is already undocked.");
+  if (!target || !isKnown(state, world, content, targetId)) return result("This destination is not yet known.");
   if (operation === "disembark") {
-    if (current.local.dockedAtId !== targetId) return "Dock at this site before disembarking.";
-    return permissionReason(state, actorId, targetId, "enter") || conditionReason(current.actionState, target.accessConditions, content);
+    if (current.local.dockedAtId !== targetId) return result("Dock at this site before disembarking.");
+    return result(permissionReason(state, actorId, targetId, "enter") || conditionReason(current.actionState, target.accessConditions, content));
   }
-  if (!["travel", "dock"].includes(operation)) return "Unknown navigation operation.";
-  if (current.local.dockedAtId) return "Undock before starting a journey.";
+  if (!["travel", "dock"].includes(operation)) return result("Unknown navigation operation.");
+  if (current.local.dockedAtId) return result("Undock before starting a journey.");
   if (operation === "travel") {
-    if (target.kind !== "area") return "Choose an area destination.";
-    if (targetId === current.local.areaId) return "The ship is already in this area.";
-    if (!world.links.some(([a, b]) => (a === current.local.areaId && b === targetId) || (b === current.local.areaId && a === targetId))) return "This area is beyond connection range.";
-  } else if (target.kind !== "site" || target.mobile) return "Docking requires a stationary site.";
-  else if (state.locations[targetId].areaId !== current.local.areaId) return "Travel to this site's area first.";
+    if (target.kind !== "area") return result("Choose an area destination.");
+    if (targetId === current.local.areaId) return result("The ship is already in this area.");
+    if (!physicalLinks(state,world).some(([a, b]) => (a === current.local.areaId && b === targetId) || (b === current.local.areaId && a === targetId))) return result("This area is beyond connection range.");
+  } else if (target.kind !== "site" || target.mobile) return result("Docking requires a stationary site.");
+  else if (state.locations[targetId].areaId !== current.local.areaId) return result("Travel to this site's area first.");
   const access = permissionReason(state, actorId, targetId, operation === "dock" ? "dock" : "enter") || conditionReason(current.actionState, target.accessConditions, content);
-  if (access) return access;
+  if (access) return result(access);
   const quote = journeyQuote(state, targetId, world, content, shipId);
-  if (!(quote.duration > 0) || !Number.isFinite(quote.duration)) return "Requires operational propulsion with positive travel speed.";
-  if (current.local.resources.power < quote.powerCost) return "Insufficient ship power for this journey.";
-  if (current.local.assembly && (current.local.fuel.items[quote.fuelItemId] ?? 0) < quote.fuelUnits) return 'Insufficient loaded vessel fuel.';
-  if (quote.powerCost > 0 && current.local.resources.power - quote.powerCost === current.local.resources.power) return "Journey power cost is too small to debit accurately.";
-  return "";
+  if (!(quote.duration > 0) || !Number.isFinite(quote.duration)) return result("Requires operational propulsion with positive travel speed.");
+  if (current.local.resources.power < quote.powerCost) return result("Insufficient ship power for this journey.",'POWER');
+  if (current.local.assembly && (current.local.fuel.items[quote.fuelItemId] ?? 0) < quote.fuelUnits) return result('Insufficient loaded vessel fuel.','FUEL');
+  if (quote.powerCost > 0 && current.local.resources.power - quote.powerCost === current.local.resources.power) return result("Journey power cost is too small to debit accurately.");
+  return result('');
 }
 
 export function navigate(state, operation, targetId, world, content, shipId = state.locationId, actorId = "player", ledgerServices) {
@@ -157,7 +162,7 @@ export function validateShipStates(state, world) {
         !Number.isFinite(journey.remaining) || journey.remaining <= 0 || journey.remaining > journey.duration) fail("journey");
     const target = locationDefinition(state, world, journey.targetId);
     if (journey.kind === "area") {
-      if (target?.kind !== "area" || !world.links.some(([a, b]) => (a === local.areaId && b === target.id) || (b === local.areaId && a === target.id))) fail("journey target");
+      if (target?.kind !== "area" || !physicalLinks(state,world).some(([a, b]) => (a === local.areaId && b === target.id) || (b === local.areaId && a === target.id))) fail("journey target");
     } else if (target?.kind !== "site" || target.mobile || state.locations[target.id].areaId !== local.areaId) fail("journey docking target");
     if (!state.entities && state.locationId !== id) fail("unoccupied active journey");
   }
@@ -194,10 +199,11 @@ export function navigationView(state, targetId, world, content) {
     detail: quote && Number.isFinite(quote.duration) && quote.duration > 0 ? `${formatDuration(quote.duration)} · ${quote.powerCost} ship power${quote.fuelUnits !== undefined ? ` · ${quote.fuelUnits} cartridges · DRY MASS ${quote.dryMassKg} kg` : ''}` : "" };
 }
 
-export function shipGraphView(state, world, content, areaId = null) {
-  const graph = graphView(state, world, content, areaId);
+export function shipGraphView(state, world, content, areaId = null, options = {}) {
+  const graph = graphView(state, world, content, areaId, options);
   for (const node of graph.nodes) {
-    if (node.kind === "object") continue;
+    if (node.kind === "object" || node.kind==='contact') continue;
+    if(node.drone) { node.actionLabel='Drone controls';node.detail=node.observable.report?.mission ? `${node.observable.report.mission.phase} · ${node.observable.report.mission.progressText}`:'';continue; }
     Object.assign(node, navigationView(state, node.id, world, content));
     if (isShip(world, node.id, state)) {
       const ship = state.locations[node.id];

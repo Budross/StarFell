@@ -2,18 +2,19 @@ import { locationDefinition } from './entityQueries.js';
 import { isKnown } from './locations.js';
 import { canUse } from './authority.js';
 import { vesselLinkReason } from './vesselAccess.js';
-import { droneCommandReason, droneTransferReason } from './vesselCommandActions.js';
+import { droneCommandReason, droneTransferReason, droneNavigationReason } from './vesselCommandActions.js';
 import { navigationReason, journeyQuote } from './ships.js';
 import { vesselFuelSummary, fuelMovementReason } from './vesselFuel.js';
 import { processingHostView } from './processingView.js';
 import { deriveVessel } from './vessels.js';
 import { parseQuantity, formatQuantity, formatVolume } from './quantities.js';
 import { storageSummary } from './storage.js';
+import missionControlsDisplay from './missionControlsDisplay.js';
 
 // Presentation state only. Every command is checked again by its domain action.
 export default function vesselControlsDisplay(services, onAction) {
   const panel = document.querySelector('#vessel-controls');
-  panel.innerHTML = `<h2>DRONES</h2><label>Selected vessel<select id="vc-vessel" aria-label="Selected modular vessel"></select></label><p id="vc-empty"></p>
+  panel.innerHTML = `<button id="vc-close" type="button">Close drone controls</button><h2>DRONE MISSIONS</h2><label>Selected vessel<select id="vc-vessel" aria-label="Selected modular vessel"></select></label><p id="vc-empty"></p><p id="vc-observed" role="status"></p><section id="vc-mission"></section>
     <div id="vc-detail" hidden><p id="vc-status" role="status"></p><p id="vc-geometry"></p><p id="vc-stock"></p><p id="vc-link"></p>
     <div class="vc-grid"><section><h3>NAVIGATION</h3><p id="vc-journey"></p><button id="vc-undock" type="button">Undock</button>
       <label>Area destination<select id="vc-area"></select></label><p id="vc-area-quote"></p><button id="vc-travel" type="button">Travel to area</button>
@@ -28,6 +29,10 @@ export default function vesselControlsDisplay(services, onAction) {
       <button id="vc-transfer" type="button">Transfer cargo</button><p id="vc-transfer-reason"></p></section></div></div>`;
   const el = id => panel.querySelector(`#${id}`), write = (id, value) => { if (el(id).textContent !== value) el(id).textContent = value; };
   let state, vesselId = '', choices = [], runs = [];
+  const renderMission=missionControlsDisplay(el('vc-mission'),services,onAction);
+  el('vc-close').onclick=()=>{panel.hidden=true;document.querySelector('#map-drones').setAttribute('aria-expanded','false');document.querySelector('#map-drones').focus();};
+  panel.addEventListener('select-drone',event=>{vesselId=event.detail;render(state);});
+  panel.addEventListener('open-drone-controls',()=>render(state));
   function setOptions(id, entries) {
     const select = el(id), previous = select.value, signature = JSON.stringify(entries);
     if (select.dataset.signature !== signature) {
@@ -39,7 +44,7 @@ export default function vesselControlsDisplay(services, onAction) {
   function act(id, payload) { const result = onAction(id, payload); if (result?.ok) render(state); }
   function current() { return state?.locations[vesselId]; }
   function commandable() { return !droneCommandReason(state, vesselId, services); }
-  function nav(operation, targetId) { return navigationReason(state, operation, targetId, services.world, services.content, vesselId); }
+  function nav(operation, targetId) { return droneNavigationReason(state,{vesselId,operation,...(targetId?{targetId}:{})},services); }
   function commandNav(operation, targetId) { act('commandVesselNavigation', { vesselId, operation, ...(targetId ? { targetId } : {}) }); }
   el('vc-vessel').onchange = () => { vesselId = el('vc-vessel').value; render(state); };
   el('vc-area').onchange = el('vc-site').onchange = () => refreshChoices();
@@ -69,7 +74,9 @@ export default function vesselControlsDisplay(services, onAction) {
   function refreshChoices() {
     const local = current(), command = commandable(); if (!local) return;
     const area = el('vc-area').value, site = el('vc-site').value;
-    el('vc-undock').disabled = !command || !!nav('undock');
+    const undockReason = nav('undock');
+    el('vc-undock').disabled = !command || !!undockReason;
+    el('vc-undock').title = undockReason || 'Undock under direct control.';
     for (const [operation, target, quoteId, buttonId] of [['travel', area, 'vc-area-quote', 'vc-travel'], ['dock', site, 'vc-site-quote', 'vc-dock']]) {
       const reason = target ? nav(operation, target) : 'Choose a destination.';
       const quote = target ? journeyQuote(state, target, services.world, services.content, vesselId) : null;
@@ -90,7 +97,7 @@ export default function vesselControlsDisplay(services, onAction) {
   function refreshProcess() {
     const selected = choices[Number(el('vc-process').value)];
     write('vc-process-detail', selected ? `${selected.label} · ${selected.preview.reason || `Ready, ${Math.ceil(selected.preview.workTotal)}s`}${selected.preview.warning ? ` · ${selected.preview.warning}` : ''}` : 'No compatible batch is available here.');
-    el('vc-start').disabled = !selected?.preview.ok || !commandable();
+    el('vc-start').disabled = !selected?.preview.ok || !commandable() || !!services.missions.current(state,vesselId);
   }
   function refreshTransfer() {
     const local = current(), berth = local?.dockedAtId, direction = el('vc-direction').value;
@@ -110,14 +117,21 @@ export default function vesselControlsDisplay(services, onAction) {
   }
   function render(nextState) {
     state = nextState;
-    const vessels = Object.entries(state.entities).filter(([id, e]) => e.lifecycle === 'active' && e.type === 'ship' && state.locations[id]?.assembly &&
-      isKnown(state, services.world, services.content, id) && canUse(state, 'player', id, 'viewCargo'));
-    setOptions('vc-vessel', vessels.map(([id]) => [id, locationDefinition(state, services.world, id).name]));
+    const ids=new Set(Object.keys(state.vesselReports.byVessel));
+    for(const [id,e] of Object.entries(state.entities))if(e.type==='ship' && state.locations[id]?.assembly && locationDefinition(state,services.world,id)?.controlMode!=='commanded' && isKnown(state,services.world,services.content,id) && canUse(state,'player',id,'viewCargo'))ids.add(id);
+    const vessels = [...ids].map(id=>[id,services.vesselObservations.get(state,id)]);
+    setOptions('vc-vessel', vessels.map(([id,seen]) => [id,seen.name]));
     if (!vessels.some(([id]) => id === vesselId)) vesselId = vessels[0]?.[0] ?? '';
     if (el('vc-vessel').value !== vesselId) el('vc-vessel').value = vesselId;
     write('vc-empty', vessels.length ? '' : 'Assemble a vessel at Habitat 05 to unlock these controls.');
-    el('vc-detail').hidden = !vesselId;
+    el('vc-detail').hidden = true;el('vc-mission').hidden=!vesselId;
     if (!vesselId) return;
+    const seen=services.vesselObservations.get(state,vesselId);
+    write('vc-observed',`${seen.name} · ${seen.classification.replaceAll('_',' ')}${seen.observedAt!==null?` · last contact ${Math.floor(seen.report?.observedAt ?? seen.observedAt)}s`:''}${seen.report?.cargoText?` · ${seen.report.cargoText}`:''}${seen.report?.fuelText?` · Fuel: ${seen.report.fuelText}`:''}${seen.report?.power!==null && seen.report?.power!==undefined?` · Power: ${seen.report.power.toFixed(2)}`:''}`);
+    if(locationDefinition(state,services.world,vesselId)?.controlMode==='commanded' || state.vesselReports.byVessel[vesselId]){if(!panel.hidden)renderMission(state,vesselId,seen);}
+    else el('vc-mission').hidden=true;
+    if(seen.classification!=='LIVE' || !canUse(state,'player',vesselId,'viewCargo') || !(canUse(state,'player',vesselId,'useFacilities') || canUse(state,'player',vesselId,'manageEquipment')))return;
+    el('vc-detail').hidden=false;
     const local = current(), def = locationDefinition(state, services.world, vesselId), derived = deriveVessel(local.assembly, services.content);
     const link = vesselLinkReason(state, vesselId, services), command = droneCommandReason(state, vesselId, services);
     write('vc-status', `${def.name} · ${def.vesselClass} · ${local.journey ? `En route to ${locationDefinition(state, services.world, local.journey.targetId).name} (${Math.ceil(local.journey.remaining)}s)` : local.dockedAtId ? `Docked at ${locationDefinition(state, services.world, local.dockedAtId).name}` : `Undocked in ${locationDefinition(state, services.world, local.areaId).name}`}`);

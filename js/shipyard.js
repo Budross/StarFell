@@ -4,13 +4,22 @@ import { permissionReason } from './authority.js';
 import { createEntity } from './entityCreation.js';
 import { previewExchange, transfer } from './resources.js';
 import { checkedAdd, record } from './quantities.js';
+import { hasCapability } from './equipment.js';
 
 export function createShipyardDraft(yardId) { return { yardId, core: null, attachments: [], nextKey: 1, name: '' }; }
 export function draftAssembly(draft) { return { core: draft.core, attachments: draft.attachments }; }
+function rebaseCore(draft, x, y, content) {
+  const m = content.vesselModules[draft.core.moduleId];
+  if (![x, y, x + m.footprint.width, y + m.footprint.height].every(Number.isSafeInteger)) throw new Error('Invalid module coordinates.');
+  for (const p of draft.attachments) { p.x -= x; p.y -= y; }
+}
 export function placeDraftModule(draft, moduleId, x, y, content) {
   const next = structuredClone(draft), module = content.vesselModules[moduleId];
   if (!module) throw new Error('Choose a compatible module.');
-  if (module.role === 'core') next.core = { key: 'core', moduleId, x: 0, y: 0 };
+  if (module.role === 'core') {
+    next.core = { key: 'core', moduleId, x: 0, y: 0 };
+    rebaseCore(next, x, y, content);
+  }
   else {
     if (!next.core) throw new Error('Place a core first.');
     next.attachments.push({ key: `module${next.nextKey++}`, moduleId, x, y });
@@ -31,9 +40,11 @@ function checkDraftRectangles(draft, content) {
   }
 }
 export function moveDraftModule(draft, key, x, y, content) {
-  const next = structuredClone(draft), p = next.attachments.find(p => p.key === key);
-  if (!p) throw new Error('The core stays at the origin; choose an attachment.');
-  p.x = x; p.y = y; checkDraftRectangles(next, content); return next;
+  const next = structuredClone(draft), p = [next.core, ...next.attachments].find(p => p?.key === key);
+  if (!p) throw new Error('Choose a placed module.');
+  if (key === 'core') rebaseCore(next, x, y, content);
+  else { p.x = x; p.y = y; }
+  checkDraftRectangles(next, content); return next;
 }
 export function removeDraftModule(draft, key) {
   const next = structuredClone(draft);
@@ -68,5 +79,28 @@ export function assembleVessel(state, request, services, actorId = 'player') {
   const id = createEntity(state, services, { type: 'ship', definitionId: 'modularVessel', displayName: request.name?.trim() || (preview.vessel.core.boardable ? 'Crewed vessel' : 'Autonomous vessel'),
     areaId: yard.local.areaId, dockedAtId: yard.id, ownerId: actorId, controllerId: actorId, access: { public: [], grants: {} }, assembly: request.assembly });
   services.ledgerServices.append(state, { type: 'VESSEL_ASSEMBLED', actorId, targetId: id, locationId: yard.id, areaId: yard.local.areaId, data: {} });
+  return id;
+}
+
+export function previewVesselDesign(state,request,services,actorId='player'){
+  try{
+    if(!record(request)||Object.keys(request).some(k=>!['designId','revision','yardId','name'].includes(k)))throw new Error('Invalid vessel design request.');
+    const design=services.vesselDesigns?.[request.designId];if(!design||request.revision!==design.revision)throw new Error('Vessel design revision changed. Review the current design.');
+    const reason=shipyardReason(state,request.yardId,services,actorId);if(reason)throw new Error(reason);
+    if(request.name!==undefined&&(typeof request.name!=='string'||request.name.trim().length>80||/[\x00-\x1f]/.test(request.name)))throw new Error('Vessel name must contain at most 80 printable characters.');
+    if(!state.knowledge.discoveries[design.discoveryId]||design.principles.some(id=>!state.knowledge.discoveries[id]))throw new Error('Study the operated source vessel and understand its principles first.');
+    const yard=getLocationContext(state,services.content,services.world,request.yardId,actorId);
+    if(!hasCapability(yard.local.infrastructure,'fabrication',services.content))throw new Error('Requires an operational fabrication facility at the Shipyard.');
+    const exchange=previewExchange(yard.store,design.cost,{},services.content);
+    return {ok:exchange.ok,reason:exchange.reason,design,cost:design.cost,vessel:deriveVessel(design.assembly,services.content)};
+  }catch(error){return {ok:false,reason:error.message};}
+}
+export function manufactureVesselDesign(state,request,services,actorId='player'){
+  const p=previewVesselDesign(state,request,services,actorId);if(!p.ok)throw new Error(p.reason);
+  const yard=getLocationContext(state,services.content,services.world,request.yardId,actorId);
+  transfer(yard.store,p.cost,{},services.content);
+  const id=createEntity(state,services,{type:'ship',definitionId:'modularVessel',displayName:request.name?.trim()||p.design.name,areaId:yard.local.areaId,dockedAtId:yard.id,ownerId:actorId,controllerId:actorId,access:{public:[],grants:{}},assembly:structuredClone(p.design.assembly)});
+  state.locations[id].designOrigin={designId:p.design.id,revision:p.design.revision,family:p.design.family};
+  services.ledgerServices.append(state,{type:'VESSEL_ASSEMBLED',actorId,targetId:id,locationId:yard.id,areaId:yard.local.areaId,data:{}});
   return id;
 }

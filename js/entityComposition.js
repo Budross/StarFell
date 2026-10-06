@@ -6,10 +6,11 @@ import { collectResearchReferences } from './research/researchState.js';
 import { collectAuthorityReferences, collectRetainedReferences } from './entityReferences.js';
 import { collectWorldLedgerReferences } from './worldLedger.js';
 import { collectProcessingReferences } from './processing.js';
+import { collectItemKnowledgeReferences } from './itemKnowledgeState.js';
 
 // Explicit composition, not a system loader. New domains supply their own collectors.
 export const stateReferenceCollectors = [collectLocationReferences, collectShipReferences, collectNpcReferences,
-  collectDialogueReferences, collectResearchReferences, collectAuthorityReferences, collectRetainedReferences, collectWorldLedgerReferences, collectProcessingReferences];
+  collectDialogueReferences, collectResearchReferences, collectAuthorityReferences, collectRetainedReferences, collectWorldLedgerReferences, collectProcessingReferences, collectItemKnowledgeReferences];
 
 export function contentReferenceCollector({ world, people, content, research, processing }) {
   const refs = [world.entityReferences, people.entityReferences, content.entityReferences, research.catalog.entityReferences, processing?.catalog.entityReferences].flatMap(r => r ?? []);

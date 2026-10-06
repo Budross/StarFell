@@ -10,15 +10,34 @@ import { createStateLifecycleRegistry } from './stateLifecycleRegistry.js';
 import { createWorldLedger, validateWorldLedger } from './worldLedger.js';
 import { createProcessingState, reconcileProcessingNodes, validateProcessingState } from './processing.js';
 import { reconcileVessels, validateVessels } from './vessels.js';
+import { initializeItemKnowledge, validateItemKnowledge } from './itemKnowledgeState.js';
+import { createItemKnowledgeSystem } from './itemKnowledge.js';
+import { content as defaultContent } from './content.js';
+import { processingDefinitions } from './processingContent.js';
+import { compileProcessingCatalog } from './processingCatalog.js';
+import { emptyMissions } from './missions/missions.js';
+import { emptyVesselReports } from './vesselObservations.js';
+import { emptyDesignStudy } from './research/study.js';
+import {validateWorldGeography,reconcileAuthoredMapKnowledge} from './locations.js';
+import {validateMapKnowledge} from './mapKnowledge.js';
 
 const booleanMap = value => record(value) && Object.values(value).every(entry => typeof entry === 'boolean');
+const neutralDomain=(id,key,empty)=>({id,initialize:state=>{state[key]=empty();},reconcile:state=>{if(!Object.hasOwn(state,key))state[key]=empty();},validate:state=>{
+  const expected=empty(),actual=state[key],keys=Object.keys(expected);
+  if(!record(actual) || Object.keys(actual).length!==keys.length || keys.some(k=>!Object.hasOwn(actual,k) || JSON.stringify(actual[k])!==JSON.stringify(expected[k])))throw new Error(`${key} requires its composed state capability.`);
+}});
 
 // The sole default current-state manifest, shared by bootstrap and direct callers.
 // Catalog dependencies are bound once; context contains only per-load policy/notices.
-export function createStateDomains({ content, world, people, research, referenceCollectors }) {
+export function createStateDomains({ content, world, people, research, referenceCollectors, itemKnowledge, processing, missions, vesselObservations,designStudy }) {
+  const study=designStudy??research.studies;
+  const journal = itemKnowledge ?? createItemKnowledgeSystem({ content, world,
+    processes:(processing?.catalog ?? compileProcessingCatalog(content === defaultContent ? processingDefinitions : [],content,world)).definitions });
   const collectors = [...(referenceCollectors ?? [...stateReferenceCollectors,
-    contentReferenceCollector({ content, world, people, research })])];
+    contentReferenceCollector({ content, world, people, research }),...(study?[study.collectReferences]:[])])];
   return [
+    {id:'world-geography',validate:state=>validateWorldGeography(state,content,world)},
+    {id:'map-knowledge',validate:validateMapKnowledge,reconcile:state=>{validateMapKnowledge(state);reconcileAuthoredMapKnowledge(state,world,content);}},
     { id: 'entities', validate: validateEntities },
     { id: 'authority', validate: validateAuthority },
     { id: 'vessels', validate: state => validateVessels(state, content, world),
@@ -41,6 +60,7 @@ export function createStateDomains({ content, world, people, research, reference
     } },
     { id: 'research', validate: state => validateResearchState(state.research, research, state),
       reconcile: state => reconcileResearchContent(state, research) },
+    study?.lifecycle ?? neutralDomain('design-study','designStudy',emptyDesignStudy),
     { id: 'world-ledger', initialize(state) {
       if (Object.hasOwn(state, 'worldLedger')) throw new Error('World ledger already initialized.');
       state.worldLedger = createWorldLedger();
@@ -60,7 +80,12 @@ export function createStateDomains({ content, world, people, research, reference
         if (!recipe?.inputs.some(slot => slot.id === slotId) || typeof itemId !== 'string' || !Object.hasOwn(content.items, itemId))
           throw new Error('Invalid ingredient selection.');
       }
-    } }
+    } },
+    missions?.lifecycle ?? neutralDomain('missions','missions',emptyMissions),
+    vesselObservations?.lifecycle ?? neutralDomain('vessel-reports','vesselReports',emptyVesselReports),
+    { id:'item-knowledge',initialize(state) { initializeItemKnowledge(state); journal.learn(state); },
+      reconcile(state,context) { if (context.migrateItemKnowledge) { initializeItemKnowledge(state); journal.learn(state); } },
+      validate:validateItemKnowledge }
   ];
 }
 

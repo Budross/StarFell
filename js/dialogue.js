@@ -1,7 +1,7 @@
 import { npcDefinition, locationDefinition } from "./entityQueries.js";
 import { entityReference } from "./entityReferences.js";
 import { compileEffects, describeEffects, applyEffects } from "./effects.js";
-import { record, safeKey, validId, requireValid, validateConditions, needsBlockedReason } from "./conditions.js";
+import { record, safeKey, validId, requireValid, validateConditions, conditionContracts, needsBlockedReason } from "./conditions.js";
 import { conditionReason } from "./conditionContext.js";
 import { collectDiscoveryReferences, conditionEntityReferences } from "./conditionReferences.js";
 import { contactReason, createNpcState, validateNpcState } from "./npcs.js";
@@ -9,6 +9,7 @@ import { contactReason, createNpcState, validateNpcState } from "./npcs.js";
 const check = (ok, message) => requireValid(ok, `Invalid dialogue: ${message}.`);
 const text = value => typeof value === "string" && !!value.trim();
 const scopes = ["npc", "global", "npcLocation"];
+export const DIALOGUE_CONTACT_MODES=Object.freeze(['physical','radio']);
 export function suppliedConversations(npc, catalog) {
   return [...new Set(npc.dialogueGroups.flatMap(id => catalog.groups[id].conversations))].filter(id => !npc.excludeConversations.includes(id));
 }
@@ -17,7 +18,8 @@ export function buildDialogueCatalog(source, npcs, world, content) {
   check(record(source) && record(source.groups) && record(source.conversations), "groups and conversations required");
   const catalog = structuredClone(source);
   catalog.warnings = [];
-  const refs = { world, content, npcs, conversations: catalog.conversations };
+  catalog.conditionSources=[];
+  const refs = { world, content, npcs, conversations: catalog.conversations,contract:conditionContracts.people,conditionSources:catalog.conditionSources };
   function conditions(owner, path) {
     for (const key of ["entryConditions", "visibilityConditions", "requirements"]) validateConditions(owner[key], refs, `${path}.${key}`);
     check(!needsBlockedReason(owner.requirements) || text(owner.blockedReason), `${path} requires blockedReason`);
@@ -33,11 +35,13 @@ export function buildDialogueCatalog(source, npcs, world, content) {
     check(validId(id) && record(conversation), `conversation ${id}`);
     conversation.id = id; conversation.priority ??= 0; conversation.order ??= 0;
     conversation.repeat ??= "repeatable"; conversation.scope ??= "npc";
+    conversation.contactModes ??= ['physical'];
+    check(Array.isArray(conversation.contactModes)&&conversation.contactModes.length>0&&new Set(conversation.contactModes).size===conversation.contactModes.length&&conversation.contactModes.every(mode=>DIALOGUE_CONTACT_MODES.includes(mode)),`${id} contactModes`);
     check(["greeting", "topic"].includes(conversation.role), `${id} role`);
     check(conversation.role === "greeting" ? conversation.topicId === undefined : validId(conversation.topicId) && text(conversation.label), `${id} topicId/label`);
     check(Number.isFinite(conversation.priority) && Number.isFinite(conversation.order), `${id} ordering`);
     check(["repeatable", "once"].includes(conversation.repeat) && scopes.includes(conversation.scope), `${id} repeat/scope`);
-    conditions(conversation, id);
+    conditions(conversation, `dialogue.conversations.${id}`);
     check(record(conversation.nodes) && Object.hasOwn(conversation.nodes, conversation.entryNode), `${id} entry node`);
     for (const [nodeId, node] of Object.entries(conversation.nodes)) {
       const path = `${id}/${nodeId}`;
@@ -49,7 +53,7 @@ export function buildDialogueCatalog(source, npcs, world, content) {
       const ids = new Set();
       for (const choice of node.choices) {
         check(record(choice) && validId(choice.id) && !ids.has(choice.id), `${path} duplicate/invalid choice`); ids.add(choice.id);
-        passage(choice.text, `${path}/${choice.id}`); conditions(choice, `${path}/${choice.id}`);
+        passage(choice.text, `${path}/${choice.id}`); conditions(choice, `dialogue.conversations.${id}.nodes.${nodeId}.choices.${node.choices.indexOf(choice)}`);
         check(choice.terminal === undefined || typeof choice.terminal === "boolean", `${path} terminal`);
         check(choice.complete === undefined || typeof choice.complete === "boolean", `${path} complete`);
         if (choice.closingText !== undefined) passage(choice.closingText, `${path} closingText`);
@@ -57,6 +61,7 @@ export function buildDialogueCatalog(source, npcs, world, content) {
         else check(Object.hasOwn(conversation.nodes, choice.destinationNode), `${path} destination node`);
         check(!choice.complete || choice.terminal, `${path} complete belongs to terminal choices`);
         choice.effects = compileEffects(choice.effects, { content, world, npcs }, { kind: "dialogue" }, `${path}/${choice.id}.effects`);
+        if(conversation.contactModes.includes('radio'))check(choice.effects.every(effect=>effect.type==='discover'||effect.type==='setFlag'&&(effect.scope==='global'||effect.scope==='npc'&&effect.target==='speaker'||effect.scope==='location'&&effect.target==='current'))&&describeEffects(choice.effects).every(m=>['flagWrite','discovery','entity'].includes(m.kind)),`${path}/${choice.id} radio conversations permit only informational flag/discovery effects`);
       }
       if (!node.ending && !node.choices.length) catalog.warnings.push(`${path}: no authored replies; player can return to topics or leave.`);
     }
@@ -69,7 +74,7 @@ export function buildDialogueCatalog(source, npcs, world, content) {
   for (const npc of Object.values(npcs)) {
     check(npc.dialogueGroups.every(id => Object.hasOwn(catalog.groups, id)), `${npc.id} unknown group`);
     check(npc.excludeConversations.every(id => Object.hasOwn(catalog.conversations, id)), `${npc.id} unknown exclusion`);
-    for (const key of ["presenceConditions", "visibilityConditions", "interactionConditions"]) validateConditions(npc[key], refs, `${npc.id}.${key}`);
+    for (const key of ["presenceConditions", "visibilityConditions", "interactionConditions"]) validateConditions(npc[key], {...refs,conditionSources:undefined}, `npcs.${npc.id}.${key}`);
     const competitors = new Set();
     for (const id of suppliedConversations(npc, catalog)) {
       const conversation = catalog.conversations[id];
@@ -116,10 +121,11 @@ function requirement(state, system, npcId, entry) {
   const result = reason(state, system, npcId, entry.requirements);
   return result ? entry.blockedReason || result : "";
 }
-export function resolveTopics(state, npcId, system) {
+export function resolveTopics(state, npcId, system, mode = state.dialogue.active?.npcId===npcId ? state.dialogue.active.mode ?? 'physical' : 'physical') {
   const selected = new Map();
   for (const id of suppliedConversations(npcDefinition(state, system, npcId), system.dialogue)) {
     const c = system.dialogue.conversations[id];
+    if(!c.contactModes.includes(mode))continue;
     if (reason(state, system, npcId, c.visibilityConditions) || reason(state, system, npcId, c.entryConditions) || c.repeat === "once" && isCompleted(state, system, id, npcId)) continue;
     const key = c.role === "greeting" ? "greeting" : `topic:${c.topicId}`;
     const previous = selected.get(key);
@@ -127,11 +133,11 @@ export function resolveTopics(state, npcId, system) {
   }
   return [...selected.values()].sort((a, b) => a.order - b.order || (a.topicId ?? "").localeCompare(b.topicId ?? "")).map(c => ({ ...c, reason: requirement(state, system, npcId, c) }));
 }
-export function explainTopics(state, npcId, system) {
-  const winners = new Set(resolveTopics(state, npcId, system).map(c => c.id));
+export function explainTopics(state, npcId, system, mode = state.dialogue.active?.npcId===npcId ? state.dialogue.active.mode ?? 'physical' : 'physical') {
+  const winners = new Set(resolveTopics(state, npcId, system, mode).map(c => c.id));
   return suppliedConversations(npcDefinition(state, system, npcId), system.dialogue).map(id => {
     const c = system.dialogue.conversations[id];
-    return { id, reason: reason(state, system, npcId, c.visibilityConditions) || reason(state, system, npcId, c.entryConditions) || (c.repeat === "once" && isCompleted(state, system, id, npcId) ? "Already completed." : "") || (!winners.has(id) ? "Another variant has priority." : requirement(state, system, npcId, c)) };
+    return { id, reason: !c.contactModes.includes(mode) ? 'Unavailable in this contact mode.' : reason(state, system, npcId, c.visibilityConditions) || reason(state, system, npcId, c.entryConditions) || (c.repeat === "once" && isCompleted(state, system, id, npcId) ? "Already completed." : "") || (!winners.has(id) ? "Another variant has priority." : requirement(state, system, npcId, c)) };
   });
 }
 export function dialogueText(value, npcId, system, state = {}) { return value.replaceAll("{speaker}", npcDefinition(state, system, npcId).name); }
@@ -153,10 +159,15 @@ function enterConversation(state, system, id) {
   state.dialogue.active.conversationId = id;
   enterNode(state, system, system.dialogue.conversations[id].entryNode);
 }
+export function dialogueContactReason(state, system, session) {
+  if(session.locationId!==state.locationId)return 'The initiating contact location changed.';
+  if(session.mode==='radio')return system.communications?.contactReason(state,session.npcId,{receiverLocationId:session.receiverLocationId,requireConversation:false}) ?? 'Radio communication is unavailable.';
+  return contactReason(state,session.npcId,system);
+}
 export function reconcileContact(state, system) {
   const a = state.dialogue.active;
-  if (a && (a.locationId !== state.locationId || contactReason(state, a.npcId, system))) {
-    const message = `Conversation with ${npcDefinition(state, system, a.npcId)?.name ?? "this person"} ended; local contact was lost.`;
+  if (a && dialogueContactReason(state,system,a)) {
+    const message = `Conversation with ${npcDefinition(state, system, a.npcId)?.name ?? "this person"} ended; ${a.mode==='radio'?'radio':'local'} contact was lost.`;
     state.dialogue.active = null;
     return message;
   }
@@ -164,13 +175,16 @@ export function reconcileContact(state, system) {
 }
 // Caller provides the candidate state. This module never saves or publishes.
 export function performDialogue(state, operation, payload = {}, system, effectServices) {
+  const fields=operation==='start'?['npcId','mode']:['sessionId','revision',...(['topic','choice'].includes(operation)?['id']:[])];
+  check(record(payload)&&Object.keys(payload).every(key=>fields.includes(key)),'unknown dialogue payload field');
   if (operation === "start") {
     check(!state.dialogue.active, "end the current conversation before starting another");
-    const blocked = contactReason(state, payload.npcId, system);
+    const mode=payload.mode??'physical';check(DIALOGUE_CONTACT_MODES.includes(mode),'contact mode');
+    const blocked = mode==='radio' ? system.communications?.contactReason(state,payload.npcId) ?? 'Radio communication is unavailable.' : contactReason(state, payload.npcId, system);
     if (blocked) throw new Error(blocked);
     const id = state.dialogue.nextSession++;
-    state.dialogue.active = { npcId: payload.npcId, locationId: state.locationId, sessionId: id, revision: 0, phase: "topics", conversationId: null, nodeId: null };
-    state.dialogue.met[payload.npcId] = true;
+    state.dialogue.active = { npcId: payload.npcId, locationId: state.locationId, mode, receiverLocationId:state.npcs[payload.npcId].locationId, sessionId: id, revision: 0, phase: "topics", conversationId: null, nodeId: null };
+    if(mode==='physical')state.dialogue.met[payload.npcId] = true;
     const greeting = resolveTopics(state, payload.npcId, system).find(c => c.role === "greeting" && !c.reason);
     if (greeting) enterConversation(state, system, greeting.id);
     return "";
@@ -178,8 +192,9 @@ export function performDialogue(state, operation, payload = {}, system, effectSe
   const a = state.dialogue.active;
   if (!a || payload.sessionId !== a.sessionId || payload.revision !== a.revision) throw new Error("The conversation has changed. Choose a current reply.");
   if (operation !== "leave") {
-    const blocked = contactReason(state, a.npcId, system);
-    if (blocked || a.locationId !== state.locationId) throw new Error(blocked || "Local contact was lost.");
+    const blocked = dialogueContactReason(state,system,a);
+    if (blocked) throw new Error(blocked);
+    check(activeContentValid(state,system),'active conversation is unavailable in this contact mode');
   }
   a.revision++;
   if (operation === "leave") { state.dialogue.active = null; return `Conversation with ${npcDefinition(state, system, a.npcId).name} ended.`; }
@@ -226,17 +241,21 @@ export function validateDialogueState(state, system, allowRetired = false) {
   if (a === null) return;
   check(record(a) && validId(a.npcId) && validId(a.locationId) && Number.isSafeInteger(a.sessionId) && a.sessionId > 0 && a.sessionId < d.nextSession && Number.isSafeInteger(a.revision) && a.revision >= 0 && ["topics", "node", "ending"].includes(a.phase), "active session");
   check(a.phase === "topics" ? a.conversationId === null && a.nodeId === null : validId(a.conversationId) && validId(a.nodeId), "active phase");
+  const legacy=state.saveVersion<12, fields=['npcId','locationId','sessionId','revision','phase','conversationId','nodeId',...(!legacy?['mode','receiverLocationId']:[])];
+  check(Object.keys(a).length===fields.length&&fields.every(key=>Object.hasOwn(a,key)),'active session fields');
+  if(!legacy)check(DIALOGUE_CONTACT_MODES.includes(a.mode)&&validId(a.receiverLocationId)&&(a.mode==='physical'?a.receiverLocationId===a.locationId:d.met[a.npcId]===true),'active contact mode and endpoint');
   if (!allowRetired) {
     check(activeContentValid(state, system), "active content references");
-    check(a.locationId === state.locationId && !contactReason(state, a.npcId, system), "active local contact");
+    check(!dialogueContactReason(state,system,a), "active contact");
   }
 }
 function activeContentValid(state, system) {
   const a = state.dialogue.active, npc = npcDefinition(state, system, a.npcId);
   if (!npc || locationDefinition(state, system.world, a.locationId)?.kind !== "site") return false;
+  if(a.mode==='radio'&&!locationDefinition(state,system.world,a.receiverLocationId))return false;
   if (a.phase === "topics") return true;
   const c = system.dialogue.conversations[a.conversationId], node = c?.nodes[a.nodeId];
-  return !!node && suppliedConversations(npc, system.dialogue).includes(a.conversationId) && (a.phase === "ending") === !!node.ending;
+  return !!node && c.contactModes.includes(a.mode??'physical') && suppliedConversations(npc, system.dialogue).includes(a.conversationId) && (a.phase === "ending") === !!node.ending;
 }
 export function reconcilePeopleContent(state, system) {
   check(record(state.npcs), "saved NPC records");
@@ -264,6 +283,7 @@ export function collectDialogueReferences(state) {
   if (state.dialogue.active) {
     refs.push(entityReference("dialogue.active.npcId", state.dialogue.active.npcId, "contactNpc"));
     refs.push(entityReference("dialogue.active.locationId", state.dialogue.active.locationId, "contactLocation"));
+    if(state.dialogue.active.receiverLocationId)refs.push(entityReference('dialogue.active.receiverLocationId',state.dialogue.active.receiverLocationId,'contactLocation'));
   }
   return refs;
 }

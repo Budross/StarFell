@@ -2,7 +2,7 @@ import { npcDefinition, locationDefinition } from "./entityQueries.js";
 import { isEntityActive } from "./entities.js";
 import { isTerminal } from "./entities.js";
 import { entityReference } from "./entityReferences.js";
-import { record, validId, safeKey, requireValid, validateConditions, needsBlockedReason } from "./conditions.js";
+import { record, validId, safeKey, requireValid, validateConditions, conditionContracts, needsBlockedReason } from "./conditions.js";
 import { conditionReason } from "./conditionContext.js";
 import { compileAmounts } from "./quantities.js";
 import { validateNarrativeMetadata } from './narrative/narrativeMetadata.js';
@@ -25,12 +25,13 @@ export function buildNpcCatalog(source, world, content) {
     check(Number.isFinite(def.order), `order ${id}`);
     check(def.subtitle === undefined || typeof def.subtitle === "string", `subtitle ${id}`);
     check(Array.isArray(def.interactions) && def.interactions.every(action => ["inspect", "talk"].includes(action)), `interactions ${id}`);
+    if(def.remoteContact!==undefined)check(record(def.remoteContact)&&Object.keys(def.remoteContact).length===1&&typeof def.remoteContact.enabled==='boolean',`remoteContact ${id}`);
     for (const key of ["dialogueGroups", "excludeConversations"]) check(Array.isArray(def[key]) && def[key].every(validId), `${key} ${id}`);
     check(record(def.inventoryCapacities), `capacities ${id}`);
     def.inventoryCapacities = compileAmounts(def.inventoryCapacities, content);
     def.initialInventory = compileAmounts(def.initialInventory, content);
     for (const [item, amount] of Object.entries(def.inventoryCapacities)) check(Object.hasOwn(content.items, item) && Number.isSafeInteger(amount) && amount >= 0, `capacity ${id}/${item}`);
-    for (const key of ["presenceConditions", "visibilityConditions", "interactionConditions"]) validateConditions(def[key], { world, content, npcs: definitions }, `${id}.${key}`);
+    for (const key of ["presenceConditions", "visibilityConditions", "interactionConditions"]) validateConditions(def[key], { world, content, npcs: definitions,contract:conditionContracts.people }, `npcs.${id}.${key}`);
     check(!needsBlockedReason(def.interactionConditions) || typeof def.blockedReason === "string" && !!def.blockedReason.trim(), `blockedReason ${id}`);
     validateNpcState(createNpcState(def), def, world, content, def.spawn === false);
   }

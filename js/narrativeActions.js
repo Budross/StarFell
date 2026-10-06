@@ -13,6 +13,7 @@ export function equipmentObservationActions(context) {
       if (fact.data.enabled === false) group.reasons.add('It is disabled.');
     }
     if (fact.kind === 'equipment_activity') group.name = fact.data.name;
+    if (fact.kind === 'equipment_physical_form') { group.name=fact.data.name; group.reasons.add('Examine its physical design.'); }
     if (fact.kind === 'process_activity') {
       group.name ||= fact.data.equipmentName;
       if (fact.data.phase === 'delivery') group.reasons.add('Check the finished batch awaiting delivery.');

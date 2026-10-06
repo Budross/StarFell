@@ -1,7 +1,7 @@
 import { matchesSlot } from "./itemCatalog.js";
 import { checkedAdd, roleQuantity } from "./quantities.js";
 import { conditionReason } from "./conditionContext.js";
-import { describeAmounts, transfer, previewExchange } from "./resources.js";
+import { describeAmounts, transfer, previewExchange, quantity } from "./resources.js";
 // Compatibility exports; generic exchanges belong to resources.
 export { describeAmounts, transfer, transferReason } from "./resources.js";
 
@@ -14,12 +14,13 @@ export function ingredientOptions(state, recipe, slot, content) {
 
 export function previewRecipe(state, recipeId, selections = {}, content) {
   try { return recipePreview(state, recipeId, selections, content); }
-  catch (error) { return { reason: error.message, slots: [], cost: {}, rewards: {} }; }
+  catch (error) { return { reason: error.message, slots: [], cost: {}, rewards: {}, shortages: [] }; }
 }
 function recipePreview(state, recipeId, selections = {}, content) {
   const recipe = content.recipes[recipeId];
-  if (!recipe) return { reason: "Select a recipe.", slots: [], cost: {}, rewards: {} };
+  if (!recipe) return { reason: "Select a recipe.", slots: [], cost: {}, rewards: {}, shortages: [] };
   let reason = (state.permissions ? !["useFacilities", "withdrawCargo", "depositCargo"].every(p => state.permissions[p]) : state.managedAccess === false) ? "Requires crafting permissions (ownership or grants)." : conditionReason(state, recipe.conditions, content);
+  if(recipe.retiredWhen&&!conditionReason(state,recipe.retiredWhen,content))reason||='This recovery shortcut is replaced by the available industrial material route.';
   const cost = { ...recipe.cost };
   const slots = recipe.inputs.map(slot => {
     const options = ingredientOptions(state, recipe, slot, content);
@@ -33,9 +34,14 @@ function recipePreview(state, recipeId, selections = {}, content) {
     return { ...slot, options, selectedId, selected };
   });
   const rewards = { [recipe.output]: recipe.amount };
+  const shortages = Object.entries(cost).flatMap(([itemId, required]) => {
+    const owned = quantity(state, itemId, content);
+    return owned < required ? [{ itemId, required, owned, missing: required - owned }] : [];
+  });
+  const requirementReason = reason;
   const exchange = previewExchange(state, cost, rewards, content);
   reason ||= exchange.reason;
-  return { recipe, slots, cost, rewards, reason, storage: exchange };
+  return { recipe, slots, cost, rewards, shortages, requirementReason, reason, storage: exchange };
 }
 
 export function craft(state, recipeId, selections, content, store = state) {
@@ -51,6 +57,11 @@ export function recipeVisible(state, recipe, content) {
 
 export function visibleRecipes(state, content) {
   return Object.values(content.recipes).filter(recipe => recipeVisible(state, recipe, content));
+}
+
+// Match compiled outputs so contributed recipes work just like item-owned recipes.
+export function ingredientRecipe(itemId, recipes, currentRecipeId) {
+  return recipes.find(recipe => recipe.output === itemId && recipe.id !== currentRecipeId) ?? null;
 }
 
 export function selectRecipe(state, recipeId) {

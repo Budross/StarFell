@@ -23,6 +23,172 @@ export const researchDefinitions = {
       blockedReason: "Requires an operational bench at this location. The Habitat 05 fabricator includes one." }
   },
   discoveries: {
+    waterChemistry: {
+  "name": "Water and gas processing",
+  "description": "Understand water and gas processing through reproducible material and hardware evidence.",
+  "families": [
+    "materials",
+    "energy"
+  ],
+  "threshold": 10,
+  "eligibility": {
+    "discoveries": [
+      "electricalConduction",
+      "circuitAssembly"
+    ]
+  },
+  "evidence": [
+    {
+      "id": "feedStudy",
+      "insight": 4,
+      "once": true,
+      "samples": {
+        "items": [
+          "waterIce"
+        ],
+        "minSamples": 1,
+        "maxSamples": 1
+      },
+      "observation": "The feed sample reveals a repeatable material property."
+    },
+    {
+      "id": "hardwareStudy",
+      "insight": 6,
+      "once": true,
+      "samples": {
+        "items": [
+          "waterIce",
+          "electronicParts"
+        ],
+        "minSamples": 2,
+        "maxSamples": 2,
+        "distinct": [
+          {
+            "items": [
+              "waterIce"
+            ]
+          },
+          {
+            "items": [
+              "electronicParts"
+            ]
+          }
+        ]
+      },
+      "observation": "Comparison with understood hardware establishes a reproducible industrial method."
+    }
+  ]
+},
+    industrialTitanium: {
+  "name": "Industrial titanium refining",
+  "description": "Understand industrial titanium refining through reproducible material and hardware evidence.",
+  "families": [
+    "materials",
+    "energy"
+  ],
+  "threshold": 10,
+  "eligibility": {
+    "discoveries": [
+      "lightAlloyMetallurgy"
+    ]
+  },
+  "evidence": [
+    {
+      "id": "feedStudy",
+      "insight": 4,
+      "once": true,
+      "samples": {
+        "items": [
+          "titaniumOre"
+        ],
+        "minSamples": 1,
+        "maxSamples": 1
+      },
+      "observation": "The feed sample reveals a repeatable material property."
+    },
+    {
+      "id": "hardwareStudy",
+      "insight": 6,
+      "once": true,
+      "samples": {
+        "items": [
+          "titaniumOre",
+          "electronicParts"
+        ],
+        "minSamples": 2,
+        "maxSamples": 2,
+        "distinct": [
+          {
+            "items": [
+              "titaniumOre"
+            ]
+          },
+          {
+            "items": [
+              "electronicParts"
+            ]
+          }
+        ]
+      },
+      "observation": "Comparison with understood hardware establishes a reproducible industrial method."
+    }
+  ]
+},
+    industrialSeparation: {
+  "name": "Industrial material separation",
+  "description": "Understand industrial material separation through reproducible material and hardware evidence.",
+  "families": [
+    "materials",
+    "energy"
+  ],
+  "threshold": 10,
+  "eligibility": {
+    "discoveries": [
+      "permanentMagnetMachinery"
+    ]
+  },
+  "evidence": [
+    {
+      "id": "feedStudy",
+      "insight": 4,
+      "once": true,
+      "samples": {
+        "items": [
+          "rareEarthMinerals"
+        ],
+        "minSamples": 1,
+        "maxSamples": 1
+      },
+      "observation": "The feed sample reveals a repeatable material property."
+    },
+    {
+      "id": "hardwareStudy",
+      "insight": 6,
+      "once": true,
+      "samples": {
+        "items": [
+          "rareEarthMinerals",
+          "controlBus"
+        ],
+        "minSamples": 2,
+        "maxSamples": 2,
+        "distinct": [
+          {
+            "items": [
+              "rareEarthMinerals"
+            ]
+          },
+          {
+            "items": [
+              "controlBus"
+            ]
+          }
+        ]
+      },
+      "observation": "Comparison with understood hardware establishes a reproducible industrial method."
+    }
+  ]
+},
     ...vesselDiscoveries,
     structuralFabrication: {
       name: "Structural fabrication", description: "Form salvaged metal into load-bearing parts for repairs and assemblies.",
@@ -99,10 +265,85 @@ export const researchDefinitions = {
         { id: "couplingTest", samples: { allTags: ["electronic", "conductive"] }, insight: 4,
           observation: "Prepared conductors couple the receiving element to the signal circuit with less interference." }
       ]
-    }
-  },
+    },
+  
+  "fluidIntegration": {
+  "name": "Integrated Fluid Handling",
+  "description": "Reproducible understanding gained by non-destructive study of operated machinery.",
+  "classification": "principle",
+  "studyOnly": true,
+  "families": [
+    "mechanics"
+  ],
+  "threshold": 1,
+  "evidence": [],
+  "eligibility": {
+    "discoveries": [
+      "waterChemistry"
+    ]
+  }
+},
+  "controlledSeparation": {
+  "name": "Controlled Separation",
+  "description": "Reproducible understanding gained by non-destructive study of operated machinery.",
+  "classification": "principle",
+  "studyOnly": true,
+  "families": [
+    "mechanics"
+  ],
+  "threshold": 1,
+  "evidence": [],
+  "eligibility": {
+    "discoveries": [
+      "industrialSeparation",
+      "waterChemistry"
+    ]
+  }
+},
+  "integratedRefineryDesign": {
+  "name": "Integrated Refinery Design",
+  "description": "Reproducible understanding gained by non-destructive study of operated machinery.",
+  "classification": "design",
+  "studyOnly": true,
+  "families": [
+    "mechanics"
+  ],
+  "threshold": 1,
+  "evidence": [],
+  "eligibility": {
+    "discoveries": [
+      "fluidIntegration",
+      "controlledSeparation"
+    ]
+  }
+},
+  "prospectorVesselDesign": {
+  "name": "Prospector Vessel Design",
+  "description": "Reproducible understanding gained by non-destructive study of operated machinery.",
+  "classification": "design",
+  "studyOnly": true,
+  "families": [
+    "mechanics"
+  ],
+  "threshold": 1,
+  "evidence": [],
+  "eligibility": {
+    "discoveries": [
+      "autonomousCoreDesign",
+      "modularExtraction",
+      "reactionPropulsion",
+      "propellantHandling",
+      "photovoltaicFabrication",
+      "radioAssembly"
+    ]
+  }
+}
+},
   hints: [
     ...vesselResearchHints,
+    { conditions: { discoveries: ['electricalConduction','circuitAssembly'], not: knows('waterChemistry') }, text: 'Study water ice on its own, then compare another ice sample with electronic parts to understand water preparation and electrolysis.' },
+    { conditions: { discoveries: ['lightAlloyMetallurgy'], not: knows('industrialTitanium') }, text: 'Study titanium-bearing ore on its own, then compare another ore sample with electronic parts to establish vacuum refining and bulk alloying.' },
+    { conditions: { discoveries: ['permanentMagnetMachinery'], not: knows('industrialSeparation') }, text: 'Study rare-earth minerals on their own, then compare another sample with a control bus to understand concentration and controlled separation.' },
     { conditions: { not: knows("structuralFabrication") }, text: "Inspect the damaged structural fitting in Operations, then experiment with metal scrap. Basic bench experiments need no power." },
     { conditions: { not: knows("electricalConduction") }, text: "Try metal scrap with electronic salvage. Combining a conductor and a contact can reveal more than either alone." },
     { conditions: { not: knows("circuitAssembly") }, text: "Revisit metal scrap with electronic salvage using your electrical knowledge, or try salvage with prepared conductive parts. Mira may have useful advice." },

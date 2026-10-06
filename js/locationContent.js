@@ -15,17 +15,72 @@ export const locationDefinitions = {
   },
   locations: {
     metallicFragment: { name: 'Metallic fragment', type: 'prospectingSite', areaId: 'outerReach', remoteDescription: 'A nearby extraction berth for titanium and rare-earth minerals.', description: 'The berth sits beside titanium-bearing and rare-earth deposits.',
-      resourceNodes: [{ id: 'titaniumDeposit', resourceId: 'titaniumOre', initialReserveM3: 1, tags: ['solid', 'prospectable'] }, { id: 'rareEarthDeposit', resourceId: 'rareEarthMinerals', initialReserveM3: 0.5, tags: ['solid', 'prospectable'] }] },
+      resourceNodes: [
+  {
+    "id": "titaniumDeposit",
+    "resourceId": "titaniumOre",
+    "initialReserveM3": 1,
+    "tags": [
+      "solid",
+      "prospectable"
+    ]
+  },
+  {
+    "id": "rareEarthDeposit",
+    "resourceId": "rareEarthMinerals",
+    "initialReserveM3": 0.5,
+    "tags": [
+      "solid",
+      "prospectable"
+    ]
+  },
+  {
+    "id": "ironOreDeposit",
+    "resourceId": "ironOre",
+    "initialReserveM3": 0.5,
+    "tags": [
+      "solid",
+      "prospectable"
+    ]
+  },
+  {
+    "id": "copperOreDeposit",
+    "resourceId": "copperOre",
+    "initialReserveM3": 0.5,
+    "tags": [
+      "solid",
+      "prospectable"
+    ]
+  },
+  {
+    "id": "aluminumOreDeposit",
+    "resourceId": "aluminumOre",
+    "initialReserveM3": 0.5,
+    "tags": [
+      "solid",
+      "prospectable"
+    ]
+  },
+  {
+    "id": "nickelOreDeposit",
+    "resourceId": "nickelOre",
+    "initialReserveM3": 0.5,
+    "tags": [
+      "solid",
+      "prospectable"
+    ]
+  }
+] },
     carbonaceousBody: { name: 'Carbonaceous body', type: 'prospectingSite', areaId: 'outerReach', remoteDescription: 'A berth beside carbon-rich material.', description: 'Carbon-rich deposits supply feedstock for polymers and composites.',
       resourceNodes: [{ id: 'carbonDeposit', resourceId: 'carbonaceousRock', initialReserveM3: 1, tags: ['solid', 'prospectable'] }] },
     denseMetallicBody: { name: 'Dense metallic body', type: 'prospectingSite', areaId: 'outerReach', remoteDescription: 'A berth beside tungsten-bearing ore.', description: 'Dense ore supports heat-resistant machinery and durable tooling.',
       resourceNodes: [{ id: 'tungstenDeposit', resourceId: 'tungstenOre', initialReserveM3: 0.5, tags: ['solid', 'prospectable'] }] },
     icyBody: { name: 'Icy body', type: 'prospectingSite', areaId: 'outerReach', remoteDescription: 'A berth beside water-ice deposits.', description: 'Frozen water-bearing stock can be recovered here.',
       resourceNodes: [{ id: 'iceDeposit', resourceId: 'waterIce', initialReserveM3: 1, tags: ['solid', 'prospectable'] }] },
-    vicinity: { name: "Habitat 05 vicinity", type: "area", position: [0, 0],
+    vicinity: { name: "Habitat 05 vicinity", type: "area", position: [0, 0],primaryLocalId:'habitat',initialMapKnowledge:'KNOWN',
       remoteDescription: "A sheltered cluster of installations in the inner swarm.",
       description: "Habitat 05 hangs among unfinished collectors. Navigation beacons outline the nearby platforms." },
-    outerReach: { name: "Shattered Asteroid", type: "area", position: [
+    outerReach: { name: "Shattered Asteroid", type: "area",primaryLocalId:'metallicFragment',initialMapKnowledge:'KNOWN', position: [
   40,
   10
 ],
@@ -56,7 +111,8 @@ export const locationDefinitions = {
       remoteDescription: "An owned storage platform. No fabrication equipment is installed.",
       description: "The supply platform provides storage space in the Habitat 05 vicinity.",
       narrative:{base:'The supply platform provides storage space in the Habitat 05 vicinity.',observableTopics:['local_ship_presence']},
-      capacities: { power: 20 }, initialResources: { power: 2 } },
+      capacities: { power: 20 }, initialResources: { power: 2 },initialInfrastructure:{installedAntenna:{quantity:1}},
+      initialAccess:{public:['enter','dock'],grants:{mira:['useFacilities']}} },
     derelict: { name: "Derelict relay", type: "derelict", areaId: "outerReach",
       remoteDescription: "An abandoned relay with an accessible observation console.",
       description: "Dust covers the relay console. A frozen construction manifest records the last days of the swarm expansion.",

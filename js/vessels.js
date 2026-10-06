@@ -2,6 +2,8 @@ import { checkedAdd, checkedMultiply, validateQuantity, VOLUME_SCALE, record } f
 import { validId } from './conditions.js';
 import { capacityWithEquipment, validateEquipment, powerOutput, hasCapability, propulsionOutput } from './equipment.js';
 import { SHIPYARD_CELL_SIZE_METERS, VESSEL_REFERENCE_MASS_KG } from './vesselModuleCatalog.js';
+import { validateVesselDesignOrigin } from './vesselDesignProvenance.js';
+import { hasInstalledPropulsion } from './shipEquipment.js';
 
 const fail = message => { throw new Error(`Invalid vessel: ${message}.`); };
 const fields = (value, keys) => record(value) && Object.keys(value).every(k => keys.includes(k));
@@ -70,7 +72,7 @@ export function deriveVessel(assembly, content, { draft = false } = {}) {
   const equipment = Object.fromEntries(Object.keys(content.infrastructure).map(id => [id, { quantity: 0, health: 1, enabled: true, upgrades: [] }]));
   for (const [id, count] of Object.entries(counts)) equipment[content.vesselModules[id].group].quantity = count;
   const warnings = [];
-  for (const [condition, label] of [[!hasCapability(equipment, 'propulsion', content), 'No propulsion'], [!fuelVolumeUnits, 'No fuel storage'], [!cargoVolumeUnits, 'No cargo'], [powerOutput(equipment, content) <= 0, 'No generation'], [!hasCapability(equipment, 'radio', content), 'No radio'], [!hasCapability(equipment, 'surfaceExtraction', content), 'No extraction']]) if (condition) warnings.push(label);
+  for (const [condition, label] of [[!hasInstalledPropulsion(equipment, content), 'No propulsion'], [!fuelVolumeUnits, 'No fuel storage'], [!cargoVolumeUnits, 'No cargo'], [powerOutput(equipment, content) <= 0, 'No generation'], [!hasCapability(equipment, 'radioCommunication', content), 'No radio'], [!hasCapability(equipment, 'surfaceExtraction', content), 'No extraction']]) if (condition) warnings.push(label);
   return { core: { ...core }, counts, modules: modules.map(({ def, ...m }) => m), moduleCount: modules.length,
     dryMassGrams, dryMassKg: dryMassGrams / 1000, volumeUnits, volumeM3: volumeUnits / VOLUME_SCALE,
     cargoVolumeUnits, fuelVolumeUnits, acceptedFuelItemIds: [...fuelIds], equipment, warnings,
@@ -128,6 +130,7 @@ export function reconcileVessels(state, content, world) {
 }
 export function validateVessels(state, content, world) {
   for (const [id, local] of Object.entries(state.locations)) {
+    if(local.designOrigin!==undefined){validateVesselDesignOrigin(local.designOrigin);if(!local.assembly)fail('design provenance requires a resolved assembly');}
     const entity = state.entities?.[id], base = world.definitions[entity?.definition?.id];
     if (['retired', 'destroyed'].includes(entity?.lifecycle)) {
       if (Object.hasOwn(local, 'assembly')) validateAssemblySyntax(local.assembly);

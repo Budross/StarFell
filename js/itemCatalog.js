@@ -1,10 +1,19 @@
-import { validateConditions, record, safeKey } from "./conditions.js";
+import { validateConditions, conditionContracts, record, safeKey } from "./conditions.js";
 import { collectDiscoveryReferences, conditionEntityReferences } from "./conditionReferences.js";
 import { compileEffects, describeEffects } from "./effects.js";
 import { volumeUnits, compileQuantity, decimalRatio, fromBigInt } from "./quantities.js";
 import { validateNarrativeMetadata } from './narrative/narrativeMetadata.js';
+import { validateKnowledgeEntry, validateLearningPolicy } from './itemKnowledgePolicy.js';
+import { operationForCategory, manufacturingInputAllowed } from './manufacturing.js';
+import { compileItemDesigns } from './itemDesignCatalog.js';
+import { EQUIPMENT_CAPABILITY_CONTRACTS, createEquipmentCapabilityContracts, compileEquipmentCapabilities } from './equipmentCapabilityContracts.js';
+import { compileEquipmentCatalog } from './equipmentCatalog.js';
+import { compileShipEquipment } from './shipEquipment.js';
 export { conditionReason } from "./conditionContext.js";
 const categories = new Set(["resource", "component", "product"]);
+export function itemProducerMetadata(content) {
+  return Object.values(content.items).flatMap(item=>item.operations.filter(o=>o.once).map(o=>({kind:'flag',scope:o.completion.scope,targetId:o.completion.scope==='location'?'*':undefined,flag:o.completion.flag,value:true})));
+}
 const object = value => value !== null && typeof value === "object" && !Array.isArray(value);
 const idPattern = /^[A-Za-z][A-Za-z0-9_-]*$/;
 function check(ok, message) { if (!ok) throw new Error(`Invalid catalog: ${message}`); }
@@ -12,20 +21,21 @@ function strings(value) { return Array.isArray(value) && value.every(entry => ty
 function positive(value) { return Number.isSafeInteger(value) && value > 0; }
 
 // Compilation is independent of game state and runs once, not on every render.
-export function buildCatalog(source) {
-  try { return compileCatalog(source); }
-  catch (error) { throw new Error(error.message.startsWith("Invalid catalog:") ? error.message : `Invalid catalog: ${error.message}`); }
+export function buildCatalog(source, { equipmentContracts = EQUIPMENT_CAPABILITY_CONTRACTS } = {}) {
+  try { return compileCatalog(source, createEquipmentCapabilityContracts(Object.values(equipmentContracts))); }
+  catch (error) { throw Object.assign(new Error(error.message.startsWith("Invalid catalog:") ? error.message : `Invalid catalog: ${error.message}`,{cause:error}),{path:error.path}); }
 }
-function compileCatalog(source) {
+function compileCatalog(source, equipmentContracts) {
   check(object(source) && object(source.items), "items must be an object.");
   check(strings(source.recipeCapabilities ?? []), "recipe capabilities must be strings.");
+  const conditionSources = [];
   const items = structuredClone(source.items);
   const resources = structuredClone(source.utilities ?? {});
   const infrastructure = structuredClone(source.infrastructure ?? {});
   const recipes = {};
   const roles = {};
   const utilities = Object.keys(resources);
-  const quantityContent = { items, resources, infrastructure, utilities };
+  const quantityContent = { items, resources, infrastructure, utilities, equipmentContracts, equipmentAliases: { radio: 'radioCommunication' } };
   const validId = id => check(typeof id === "string" && idPattern.test(id) && !["constructor", "prototype", "__proto__"].includes(id), `invalid ID ${id}.`);
   for (const [id, item] of Object.entries(items)) {
     validId(id);
@@ -43,6 +53,7 @@ function compileCatalog(source) {
       check(positive(item.unitVolumeUnits), `volume for ${id}.`);
     }
     item.id = id;
+    validateKnowledgeEntry(item.knowledgeEntry, { content: quantityContent, conditionSources }, `items.${id}.knowledgeEntry`);
     item.initialQuantity ??= 0;
     item.tags ??= [];
     item.roles ??= {};
@@ -88,7 +99,7 @@ function compileCatalog(source) {
       }
     }
   }
-  const vesselModules = compileVesselModules(items, infrastructure);
+  const vesselModules = compileVesselModules(items, infrastructure, equipmentContracts);
   for (const [id, resource] of Object.entries(resources)) {
     validId(id);
     check(typeof resource.name === "string" && (!utilities.includes(id) || positive(resource.baseCapacity)), `storage definition ${id}.`);
@@ -104,7 +115,9 @@ function compileCatalog(source) {
     machine.powerPerSecond ??= 0;
     machine.initialQuantity ??= 0;
     machine.initialHealth ??= 1;
-    machine.capabilities ??= [];
+    compileShipEquipment(machine, `infrastructure.${id}`);
+    machine.capabilities = compileEquipmentCapabilities(machine.capabilities, equipmentContracts, `infrastructure.${id}.capabilities`);
+    if (machine.itemId && items[machine.itemId].installation) items[machine.itemId].installation.capabilities = structuredClone(machine.capabilities);
     if (machine.processing !== undefined) {
       check(object(machine.processing) && Object.keys(machine.processing).every(k => ['speedMultiplier','powerMultiplier'].includes(k)), `processing metadata for ${id}.`);
       machine.processing.speedMultiplier ??= 1; machine.processing.powerMultiplier ??= 1;
@@ -122,12 +135,12 @@ function compileCatalog(source) {
       check(positive(machine.storageBonusVolumeUnits), `storage bonus for ${id}.`);
     }
     check(Number.isFinite(machine.travelSpeed) && machine.travelSpeed >= 0, `travel speed for ${id}.`);
-    check(Number.isFinite(machine.powerPerSecond) && strings(machine.capabilities), `infrastructure behavior for ${id}.`);
+    check(Number.isFinite(machine.powerPerSecond), `infrastructure behavior for ${id}.`);
     check(Number.isSafeInteger(machine.initialQuantity) && machine.initialQuantity >= 0 &&
       Number.isFinite(machine.initialHealth) && machine.initialHealth >= 0 && machine.initialHealth <= 1, `initial infrastructure ${id}.`);
   }
-  function conditions(value = {}) {
-    validateConditions(value, { content: { infrastructure } }, "catalog conditions");
+  function conditions(value = {}, path) {
+    validateConditions(value, { content: quantityContent, contract:conditionContracts.state, conditionSources }, path);
   }
   function cost(value = {}, componentsOnly = false, utilitiesOnly = false) {
     check(object(value), "cost must be an object.");
@@ -142,11 +155,16 @@ function compileCatalog(source) {
   for (const recipe of Object.values(recipes)) {
     const output = items[recipe.output];
     check(output && output.category !== "resource", `recipe ${recipe.id} cannot output a resource or unknown item.`);
+    const operation = operationForCategory(output.category);
+    check(recipe.operation === undefined || recipe.operation === operation, `manufacturing operation for ${recipe.id}.`);
+    recipe.operation = operation;
     check(typeof recipe.name === "string" && recipe.name.length > 0 && positive(recipe.amount), `recipe identity/yield ${recipe.id}.`);
     check(Array.isArray(recipe.inputs) && recipe.inputs.length > 0, `inputs for ${recipe.id}.`);
-    conditions(recipe.conditions);
+    conditions(recipe.conditions, `items.${recipe.owner}.recipes.${recipe.id.split(":")[1]}.conditions`);
+    if(recipe.retiredWhen!==undefined)conditions(recipe.retiredWhen,`items.${recipe.owner}.recipes.${recipe.id.split(':')[1]}.retiredWhen`);
+    validateLearningPolicy(recipe.learnWhen, { content: quantityContent, conditionSources }, `recipe.${recipe.id}.learnWhen`);
     recipe.conditions = { ...recipe.conditions, capabilities: [...new Set([...(recipe.conditions?.capabilities ?? []), ...(source.recipeCapabilities ?? [])])] };
-    conditions(recipe.conditions);
+    conditions(recipe.conditions, `items.${recipe.owner}.recipes.${recipe.id.split(":")[1]}.conditions`);
     cost(recipe.cost, false, true);
     const slotIds = new Set();
     for (const slot of recipe.inputs) {
@@ -159,7 +177,7 @@ function compileCatalog(source) {
       check(strings(slot.tags ?? []) && strings(slot.excludeTags ?? []), `slot properties ${slot.id}.`);
       if (slot.item) {
         check(items[slot.item] && items[slot.item].category !== "product", `invalid ingredient ${slot.item}.`);
-        check(output.category !== "product" || items[slot.item].category === "component", `product ${recipe.output} needs components.`);
+        check(manufacturingInputAllowed(items[slot.item].category, operation), `invalid manufacturing ingredient for ${recipe.output}.`);
       } else check(roles[slot.role]?.length > 0, `unknown role ${slot.role}.`);
       const candidates = Object.values(items).filter(item => matchesSlot(item, slot, output, recipe.id));
       check(candidates.length > 0, `no legal ingredients for ${recipe.id}/${slot.id}.`);
@@ -167,20 +185,22 @@ function compileCatalog(source) {
     }
   }
   for (const item of Object.values(items)) {
-    for (const approval of Object.values(item.roles)) {
-      conditions(approval.conditions);
+    for (const [roleId,approval] of Object.entries(item.roles)) {
+      conditions(approval.conditions, `items.${item.id}.roles.${roleId}.conditions`);
       if (approval.recipes !== undefined) check(strings(approval.recipes) && approval.recipes.every(id => Object.hasOwn(recipes, id)), `recipe restriction for ${item.id}.`);
     }
-    if (item.installation) conditions(item.installation.conditions);
+    if (item.installation) conditions(item.installation.conditions, `items.${item.id}.installation.conditions`);
     for (const method of item.acquisition) {
+      validateLearningPolicy(method.learnWhen, { content: quantityContent, conditionSources }, `acquisition.${method.id}.learnWhen`);
       method.amount = compileQuantity(method.amount, item.id, quantityContent);
       check(positive(method.amount), `acquisition yield for ${item.id}.`);
-      conditions(method.conditions);
+      conditions(method.conditions, `items.${item.id}.acquisition.${item.acquisition.indexOf(method)}.conditions`);
       cost(method.cost);
     }
     for (const operation of item.operations) {
+      validateLearningPolicy(operation.learnWhen, { content: quantityContent, conditionSources }, `operation.${operation.id}.learnWhen`);
       check(item.installation, `operation on ${item.id} needs installation.`);
-      conditions(operation.conditions);
+      conditions(operation.conditions, `items.${item.id}.operations.${item.operations.indexOf(operation)}.conditions`);
       cost(operation.cost);
       check(!(Object.hasOwn(operation, "effect") && Object.hasOwn(operation, "effects")), `both effect and effects on ${item.id}.`);
       check(operation.once === undefined || typeof operation.once === "boolean", `invalid once on ${item.id}.`);
@@ -199,7 +219,7 @@ function compileCatalog(source) {
         delete operation.effect;
       }
       check(Array.isArray(operation.effects), `operation on ${item.id} needs effects.`);
-      operation.effects = compileEffects(operation.effects, { content: quantityContent }, { kind: "item" }, `items.${item.id}.operations.${operation.id}.effects`);
+      operation.effects = compileEffects(operation.effects, { content: quantityContent, conditionSources }, { kind: "item" }, `items.${item.id}.operations.${operation.id}.effects`);
       if (operation.once) {
         const completion = operation.completion;
         check(record(completion) && Object.keys(completion).every(k => ["scope", "flag"].includes(k)) &&
@@ -211,7 +231,7 @@ function compileCatalog(source) {
     for (const repair of item.maintenance) {
       check(Object.hasOwn(infrastructure, repair.target), `repair target for ${item.id}.`);
       cost(repair.cost, true);
-      conditions(repair.conditions);
+      conditions(repair.conditions, `items.${item.id}.maintenance.${item.maintenance.indexOf(repair)}.conditions`);
     }
     for (const upgrade of item.upgrades) {
       upgrade.travelSpeedBonus ??= 0;
@@ -219,11 +239,15 @@ function compileCatalog(source) {
       check(item.installation && Number.isFinite(upgrade.powerBonus), `unsupported upgrade for ${item.id}.`);
       validId(upgrade.id);
       cost(upgrade.cost, true);
-      conditions(upgrade.conditions);
+      conditions(upgrade.conditions, `items.${item.id}.upgrades.${item.upgrades.indexOf(upgrade)}.conditions`);
     }
     check(new Set(item.upgrades.map(upgrade => upgrade.id)).size === item.upgrades.length, `duplicate upgrade on ${item.id}.`);
   }
   const conditionInputs = [
+    ...Object.values(items).flatMap(item => [item.knowledgeEntry?.learnWhen?.conditions,
+      ...(item.knowledgeEntry?.notes ?? []).map(n => n.learnWhen?.conditions),
+      ...[...item.acquisition,...item.operations].map(a => a.learnWhen?.conditions)]),
+    ...Object.values(recipes).map(r => r.learnWhen?.conditions),
     ...Object.values(recipes).map(recipe => recipe.conditions),
     ...Object.values(items).flatMap(item => [item.installation?.conditions,
       ...Object.values(item.roles).map(role => role.conditions),
@@ -237,11 +261,13 @@ function compileCatalog(source) {
   const effectSources = Object.values(items).flatMap(item => item.operations.map(operation => ({
     path: `items.${item.id}.operations.${operation.id}.effects`, effects: operation.effects, trigger: { kind: "item" }
   })));
-  return { items, resources, infrastructure, recipes, roles, utilities, vesselModules, discoveryReferences, entityReferences, effectSources };
+  const result = { ...quantityContent, conditionSources, recipes, roles, vesselModules, discoveryReferences, entityReferences, effectSources, designs: compileItemDesigns(items) };
+  result.equipment = compileEquipmentCatalog(result);
+  return result;
 }
 
 export function matchesSlot(item, slot, output, recipeId) {
-  if (item.category === "product" || (output.category === "product" && item.category !== "component")) return false;
+  if (!manufacturingInputAllowed(item.category, operationForCategory(output.category))) return false;
   if (slot.item ? item.id !== slot.item : !Object.hasOwn(item.roles, slot.role)) return false;
   if (slot.role && item.roles[slot.role].recipes && !item.roles[slot.role].recipes.includes(recipeId)) return false;
   return (slot.tags ?? []).every(tag => item.tags.includes(tag)) && !(slot.excludeTags ?? []).some(tag => item.tags.includes(tag));

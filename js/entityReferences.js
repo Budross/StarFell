@@ -10,6 +10,7 @@ export const roles = {
   principal: { types: ["npc", "principal"], lifecycle: lifecycles, policy: "retain" },
   historyNpc: { types: ["npc"], lifecycle: lifecycles, policy: "retain" },
   historyLocation: { types: ["site", "ship"], lifecycle: lifecycles, policy: "retain" },
+  historyVessel: { types: ["ship"], lifecycle: lifecycles, policy: "retain" },
   historyArea: { types: ["area"], lifecycle: lifecycles, policy: "retain" },
   historyContainer: { types: ["area", "site", "ship"], lifecycle: lifecycles, policy: "retain" },
   historyEntity: { types: ["area", "site", "ship", "npc", "principal"], lifecycle: lifecycles, policy: "retain" },

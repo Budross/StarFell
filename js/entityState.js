@@ -27,6 +27,9 @@ function reconcileInstances(state, content, world, people) {
   for (const [id, local] of Object.entries(state.locations)) {
     if (isTerminal(getEntity(state, id))) continue;
     if (!record(local) || !record(local.resources) || !record(local.infrastructure)) throw new Error(`Invalid local assets at ${id}.`);
+    // Areas are physical containers without cargo/equipment facilities. Legacy
+    // explicit zero maps remain valid; empty maps need no neutral expansion.
+    if(getEntity(state,id)?.type==='area')continue;
     for (const asset of Object.keys(content.resources)) if (!Object.hasOwn(local.resources, asset)) local.resources[asset] = 0;
     for (const group of Object.keys(content.infrastructure)) if (!Object.hasOwn(local.infrastructure, group)) local.infrastructure[group] = { quantity: 0, health: 1, enabled: true, upgrades: [] };
   }

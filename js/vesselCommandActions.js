@@ -1,11 +1,10 @@
 import { vesselLinkReason } from './vesselAccess.js';
 import { locationDefinition } from './entityQueries.js';
-import { getLocationContext, isKnown } from './locations.js';
+import { isKnown, physicalLinks } from './locations.js';
 import { navigationReason, navigate } from './ships.js';
 import { previewStartProcess, startProcess, previewAbortProcess, abortProcess } from './processing.js';
-import { permissionReason } from './authority.js';
-import { moveReason, moveExact } from './resources.js';
-import { quantityKind, record } from './quantities.js';
+import { record } from './quantities.js';
+import { previewBerthTransfer, executeBerthTransfer } from './vesselCargo.js';
 
 export function droneCommandReason(state, vesselId, services) {
   const link = vesselLinkReason(state, vesselId, services);
@@ -13,27 +12,29 @@ export function droneCommandReason(state, vesselId, services) {
   return locationDefinition(state, services.world, vesselId)?.controlMode === 'commanded' ? '' : 'Choose an autonomous vessel for remote commands.';
 }
 export function droneTransferReason(state, request, services) {
-  try {
-    if (!record(request) || Object.keys(request).some(k => !['vesselId', 'sourceId', 'destinationId', 'assetId', 'amount'].includes(k))) throw new Error('Invalid drone transfer request.');
-    const { vesselId, sourceId, destinationId, assetId, amount } = request;
-    const link = droneCommandReason(state, vesselId, services); if (link) throw new Error(link);
-    const local = state.locations[vesselId];
-    if (local.journey || !local.dockedAtId || !((sourceId === vesselId && destinationId === local.dockedAtId) || (destinationId === vesselId && sourceId === local.dockedAtId))) throw new Error('Transfers require the selected vessel and its actual stationary berth.');
-    if (!isKnown(state, services.world, services.content, sourceId) || !isKnown(state, services.world, services.content, destinationId)) throw new Error('Both transfer endpoints must be known.');
-    const reason = permissionReason(state, 'player', sourceId, 'withdrawCargo') || permissionReason(state, 'player', destinationId, 'depositCargo'); if (reason) throw new Error(reason);
-    return moveReason(getLocationContext(state, services.content, services.world, sourceId).store, getLocationContext(state, services.content, services.world, destinationId).store, assetId, amount, services.content);
-  } catch (error) { return error.message; }
+  return droneCommandReason(state,request?.vesselId,services) || previewBerthTransfer(state,request,services).reason;
+}
+export function droneNavigationReason(state,request,services) {
+  if(!record(request) || Object.keys(request).some(k=>!['vesselId','operation','targetId'].includes(k)) || !['undock','travel','dock'].includes(request.operation))return 'Choose a supported vessel movement command.';
+  const link=droneCommandReason(state,request.vesselId,services);if(link)return link;
+  if(services.missions?.current(state,request.vesselId))return 'Update mission orders or recall this drone before manual navigation.';
+  if(request.operation==='undock') {
+    const local=state.locations[request.vesselId], scratch={...state,locations:{...state.locations,[request.vesselId]:{...local,dockedAtId:null}}};
+    if(vesselLinkReason(scratch,request.vesselId,services))return 'Assign a feasible mission before launch: this drone will lose contact after undocking.';
+    const targets=[local.dockedAtId,...physicalLinks(state,services.world).flatMap(([a,b])=>a===local.areaId?[b]:b===local.areaId?[a]:[])].filter(Boolean);
+    if(!targets.some(id=>!navigationReason(scratch,locationDefinition(state,services.world,id)?.kind==='area'?'travel':'dock',id,services.world,services.content,request.vesselId)))return 'Load fuel and power for a usable movement or recovery leg before undocking.';
+  }
+  return navigationReason(state,request.operation,request.targetId,services.world,services.content,request.vesselId);
 }
 export function createVesselCommandActions(services) {
   return [
     { id: 'commandVesselNavigation', name: 'Command vessel navigation', scope: 'global', group: 'vesselCommands', permissions: [],
       requirement(state, _ctx, request) {
-        if (!record(request) || Object.keys(request).some(k => !['vesselId', 'operation', 'targetId'].includes(k)) || !['undock', 'travel', 'dock'].includes(request.operation)) return 'Choose a supported vessel movement command.';
-        return droneCommandReason(state, request.vesselId, services) || navigationReason(state, request.operation, request.targetId, services.world, services.content, request.vesselId);
+        return droneNavigationReason(state,request,services);
       },
       execute: (state, _ctx, request) => navigate(state, request.operation, request.targetId, services.world, services.content, request.vesselId, 'player', services.ledgerServices) },
     { id: 'commandVesselProcess', name: 'Command vessel batch', scope: 'global', group: 'vesselCommands', permissions: [],
-      requirement: (state, _ctx, request) => droneCommandReason(state, request?.hostId, services) || previewStartProcess(state, request, services.processing).reason,
+      requirement: (state, _ctx, request) => droneCommandReason(state, request?.hostId, services) || (services.missions?.current(state,request?.hostId) ? 'Update mission orders before starting manual work.':'') || previewStartProcess(state, request, services.processing).reason,
       execute(state, _ctx, request) { const id = startProcess(state, request, services.processing); return `Vessel batch ${id} started.`; } },
     { id: 'commandVesselAbort', name: 'Abort vessel batch', scope: 'global', group: 'vesselCommands', permissions: [],
       requirement(state, _ctx, request) {
@@ -46,10 +47,7 @@ export function createVesselCommandActions(services) {
       requirement: (state, _ctx, request) => droneTransferReason(state, request, services),
       execute(state, _ctx, request) {
         const reason = droneTransferReason(state, request, services); if (reason) throw new Error(reason);
-        const { sourceId, destinationId, assetId, amount } = request;
-        moveExact(getLocationContext(state, services.content, services.world, sourceId).store, getLocationContext(state, services.content, services.world, destinationId).store, assetId, amount, services.content);
-        services.ledgerServices.append(state, { type: 'RESOURCE_TRANSFERRED', actorId: 'player', targetId: destinationId, locationId: sourceId, areaId: state.locations[sourceId].areaId,
-          data: { sourceId, destinationId, resourceId: assetId, quantityKind: quantityKind(assetId, services.content), amount } });
+        executeBerthTransfer(state,request,services);
         return `Transferred cargo between the vessel and its berth.`;
       } }
   ];

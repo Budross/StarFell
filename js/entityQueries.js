@@ -3,6 +3,7 @@ import { vesselDefinition } from './vessels.js';
 
 export function resolveEntityDefinition(state, catalogs, id) {
   const ref = getEntity(state, id)?.definition;
+  if(ref?.catalog==='locations' && catalogs.world?.resolveLocationDefinition) return catalogs.world.resolveLocationDefinition(state,id);
   const definitions = ref?.catalog === "locations" ? catalogs.world?.definitions : ref?.catalog === "npcs" ? catalogs.people?.npcs : null;
   return definitions && Object.hasOwn(definitions, ref.id) ? definitions[ref.id] : undefined;
 }
@@ -39,7 +40,7 @@ export function locationDefinition(state, world, id) {
   const e = getEntity(state, id);
   if (!e || !["area", "site", "ship"].includes(e.type)) return undefined;
   const def = resolveEntityDefinition(state, { world }, id);
-  return def ? { ...vesselDefinition(state.locations[id], def, world), definitionId: def.id, id, name: getEntityLabel(state, { world }, id) } : undefined;
+  return def ? { ...vesselDefinition(state.locations[id], def, world), definitionId: def.id, id, name: (isTerminal(e)?e.retained?.name:e.displayName) ?? def.name ?? e.retained?.name ?? id } : undefined;
 }
 export function locationInstances(state, world, lifecycle = ["active"]) {
   return state.entities ? listEntities(state, { types: ["area", "site", "ship"], lifecycle }).map(e => locationDefinition(state, world, e.id)).filter(Boolean)

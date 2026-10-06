@@ -1,3 +1,4 @@
+import { definitionHasCapability, equipmentCapabilityTypes } from './equipmentCatalog.js';
 import { canUse } from './authority.js';
 import { conditionReason } from './conditionContext.js';
 import { locationDefinition } from './entityQueries.js';
@@ -16,11 +17,11 @@ export function processingHostView(state, services, hostId, actorId = 'player') 
   const readiness=new Map(processingHostObservation(state,hostId,services).runs.map(r=>[r.runId,r]));
   const groups = Object.entries(services.content.infrastructure).filter(([id,def]) =>
     (context.local.infrastructure[id].quantity > 0 || runs.some(r => r.equipmentId === id)) &&
-    (def.capabilities.some(c => services.catalog.byCapability[c]) || runs.some(r => r.equipmentId === id))).map(([equipmentId,def]) => {
+    (equipmentCapabilityTypes(services.content,id).some(c => services.catalog.byCapability[c]) || runs.some(r => r.equipmentId === id))).map(([equipmentId,def]) => {
       const machine = context.local.infrastructure[equipmentId], attached = runs.filter(r => r.equipmentId === equipmentId);
       const choices = [];
       if (canViewCargo) for (const process of Object.values(services.catalog.definitions)) {
-        if (!def.capabilities.includes(process.capability) || !process.hostKinds.includes(state.entities[hostId].type) || conditionReason(context.actionState,process.startConditions,services.content)) continue;
+        if (!definitionHasCapability(services.content,equipmentId,process.capability) || !process.hostKinds.includes(state.entities[hostId].type) || conditionReason(context.actionState,process.startConditions,services.content)) continue;
         const request = { hostId,equipmentId,processId: process.id };
         if (process.kind === 'refining') choices.push({ label: process.name, request, preview: previewStartProcess(state,request,services,actorId) });
         else for (const sourceId of Object.keys(state.locations)) {

@@ -1,3 +1,4 @@
+import { equipmentCapabilityTypes } from '../../equipmentCatalog.js';
 import { calculateProcessingReadiness } from '../../processingQuery.js';
 import { fact } from '../narrativeFacts.js';
 import { canObserve,historyAge } from '../narrativeContext.js';
@@ -6,7 +7,7 @@ export function processingFactProvider(services) {
   return {id:'processing',provide(state,scope) {
     const attached=Object.values(state.processing.runs).filter(r=>r.hostId===scope.locationId);
     const groups=Object.entries(state.locations[scope.locationId].infrastructure).filter(([id,m])=>
-      (m.quantity>0 && services.catalog.byCapability && services.content.infrastructure[id].capabilities.some(c=>services.catalog.byCapability[c]) || attached.some(r=>r.equipmentId===id)) && (!scope.equipmentId || id===scope.equipmentId));
+      (m.quantity>0 && services.catalog.byCapability && equipmentCapabilityTypes(services.content,id).some(c=>services.catalog.byCapability[c]) || attached.some(r=>r.equipmentId===id)) && (!scope.equipmentId || id===scope.equipmentId));
     if (!scope.facilities && !groups.some(([id])=>canObserve(scope,'industrial_activity',services.content.infrastructure[id].narrative))) return [];
     const plan=calculateProcessingReadiness(state,services),facts=[];
     for (const [id,machine] of groups) {

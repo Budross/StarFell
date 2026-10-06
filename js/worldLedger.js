@@ -107,7 +107,7 @@ export function createWorldLedgerServices(checks = {}) {
       if (!batch?.validated) { validateWorldLedger(state); if (batch) batch.validated = true; }
       const type = ledgerType(input.type), ledger = state.worldLedger;
       ledgerCheck(ledger.nextId < Number.MAX_SAFE_INTEGER, 'ID counter exhausted');
-      const entry = { id: ledger.nextId, type: input.type, time: state.simulationTime,
+      const entry = { id: ledger.nextId, type: input.type, time: checks.clock ? checks.clock.now(state) : state.simulationTime,
         actorId: input.actorId === undefined ? null : input.actorId,
         targetId: input.targetId === undefined ? null : input.targetId,
         locationId: input.locationId === undefined ? null : input.locationId,

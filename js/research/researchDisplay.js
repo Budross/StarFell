@@ -4,7 +4,6 @@ import { describeAmounts } from "../resources.js";
 
 export default function researchDisplay(system, onAction, openTab) {
   const panel = document.querySelector("#research-panel");
-  const knowledgePanel = document.querySelector("#knowledge-panel");
   panel.innerHTML = `<div class="research-heading"><div><p class="research-eyebrow">FIELD NOTES / EXPERIMENTAL SCIENCE</p><h2>Research workbench</h2></div><span id="research-location"></span></div>
     <div class="research-layout"><aside class="research-hint"><h3>Try next</h3><p id="research-hint"></p></aside>
     <section class="research-workbench" aria-labelledby="research-experiment-heading">
@@ -14,10 +13,8 @@ export default function researchDisplay(system, onAction, openTab) {
       <p id="research-cost"></p><p id="research-profile" class="research-muted"></p><p id="research-reason"></p>
       <button id="research-submit" type="submit" disabled>Run experiment</button></form>
     </section><section class="research-notes" aria-labelledby="research-journal-heading"><h3 id="research-journal-heading">02 / Observations</h3><p id="research-count" class="research-muted"></p><ol id="research-journal"></ol></section></div>`;
-  knowledgePanel.innerHTML = `<div class="research-heading"><div><p class="research-eyebrow">FIELD NOTES / WHAT YOU KNOW</p><h2>Discovered knowledge</h2></div></div>
-    <div id="research-knowledge"></div><p id="research-legacy" class="research-muted" hidden>Earlier fabrication knowledge was preserved when this save was updated.</p><div id="research-families"></div>`;
   const $ = id => panel.querySelector(`#research-${id}`);
-  const knowledge = id => knowledgePanel.querySelector(`#research-${id}`);
+  const studies=document.createElement('section');studies.id='research-design-studies';panel.append(studies);let studySignature='';
   const form = $("form"), method = $("method"), sampleList = $("samples");
   const setText = (element, value) => { if (element.textContent !== value) element.textContent = value; };
   const element = (tag, text, className) => { const el = document.createElement(tag); el.textContent = text; if (className) el.className = className; return el; };
@@ -44,8 +41,14 @@ export default function researchDisplay(system, onAction, openTab) {
   document.querySelector("#research-shortcut").addEventListener("click", openTab);
   function render(next) {
     state = next;
+    const choices=system.studies?.options(state)??[],studyKey=JSON.stringify(choices);
+    if(studyKey!==studySignature){studySignature=studyKey;studies.replaceChildren();const title=document.createElement('h3');title.textContent='03 / Engineering study';studies.append(title);
+      if(!choices.length){const note=document.createElement('p');note.textContent='Operate installed machinery, or return a complete prospector to the Shipyard, to study its design without consuming it.';studies.append(note);}
+      for(const choice of choices){const row=document.createElement('div'),button=document.createElement('button'),reason=document.createElement('p');button.textContent=choice.name;button.disabled=!choice.ok;button.dataset.study=choice.ruleId;button.onclick=()=>onAction('research:study',{ruleId:choice.ruleId,subjectId:choice.subjectId});reason.textContent=choice.reason||'Records understanding without consuming the subject.';row.append(button,reason);studies.append(row);}}
     if (locationId !== state.locationId) { locationId = state.locationId; selected.clear(); signature = ""; }
     const model = researchInputView(state, system, { methodId: method.value, items: [...selected] });
+    selected.clear();
+    model.samples.filter(sample => sample.selected).forEach(sample => selected.add(sample.id));
     // Cache rendered values, rather than duplicating the mechanics' dependencies.
     const nextSignature = JSON.stringify(model);
     if (signature !== nextSignature) {
@@ -62,7 +65,7 @@ export default function researchDisplay(system, onAction, openTab) {
         row.input.disabled = sample.disabled;
         setText(row.quantity, model.canExperiment ? `${formatQuantity(sample.amount, sample.id, system.content)} available · sample ${formatQuantity(sample.required, sample.id, system.content)}` : "Private");
       }
-      setText($("empty"), shown ? "" : model.canExperiment ? "Gather samples using the salvage directives in Operations." : "Samples are private at this location.");
+      setText($("empty"), shown ? "" : model.canExperiment ? "No samples in local inventory can provide new evidence right now. New materials, knowledge, or clues may open more research." : "Samples are private at this location.");
       const costs = describeAmounts(model.cost, system.content);
       setText($("cost"), costs ? `Consumes: ${costs}.` : "Select samples to review the cost.");
       const profile = Object.entries(model.families).filter(([, n]) => n > 0).sort((a, b) => b[1] - a[1]);
@@ -75,18 +78,6 @@ export default function researchDisplay(system, onAction, openTab) {
     const nextJournal = JSON.stringify([state.research.attemptCount, state.knowledge.discoveries, state.research.legacyKnowledge, state.research.exposure]);
     if (journalSignature === nextJournal) return;
     journalSignature = nextJournal;
-    const known = system.catalog.orderedDiscoveries.filter(d => state.knowledge.discoveries[d.id]);
-    knowledge("knowledge").replaceChildren();
-    if (!known.length) knowledge("knowledge").append(element("p", "Discoveries will appear here as your observations come together.", "research-muted"));
-    for (const discovery of known) {
-      const card = element("article", "", "research-discovery");
-      card.append(element("h4", discovery.name), element("p", discovery.description)); knowledge("knowledge").append(card);
-    }
-    knowledge("legacy").hidden = !state.research.legacyKnowledge;
-    knowledge("families").replaceChildren();
-    for (const [id, exposure] of Object.entries(state.research.exposure).filter(([, n]) => n > 0)) {
-      knowledge("families").append(element("span", `${system.catalog.families[id].name}: ${exposure >= 40 ? "familiar" : exposure >= 15 ? "developing" : "emerging"}`, "research-family"));
-    }
     const recent = [];
     let previousItems = null;
     for (const attempt of state.research.attempts) {

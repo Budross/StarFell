@@ -4,10 +4,18 @@ export const safeKey = value => typeof value === "string" && !!value.trim() && !
 export const validId = value => safeKey(value) && /^[A-Za-z][A-Za-z0-9_-]*$/.test(value);
 export function requireValid(ok, message) { if (!ok) throw new Error(message); }
 
+const stateOperators = ['all','any','not','locations','discoveries','flags','localFlags','locationFlags','npcFlags','equipment','capabilities','met'];
+export const conditionContracts = Object.freeze({
+  state: Object.freeze({operators:Object.freeze(stateOperators),speaker:false}),
+  people: Object.freeze({operators:Object.freeze([...stateOperators,'completed']),speaker:true}),
+  learning: Object.freeze({operators:Object.freeze(['all','any','not','discoveries','flags','localFlags','locationFlags']),speaker:false})
+});
+
 export function validateConditions(value = {}, refs = {}, path = "conditions", depth = 0) {
-  const check = (ok, detail) => requireValid(ok, `Invalid ${path}: ${detail}.`);
+  const check = (ok, detail) => {if(!ok)throw Object.assign(new Error(`Invalid ${path}: ${detail}.`),{path});};
   check(record(value) && depth <= 16, "expected a condition object (maximum depth 16)");
   for (const [key, entries] of Object.entries(value)) {
+    if(refs.contract)check(refs.contract.operators.includes(key),`unsupported operator ${key}`);
     if (key === "all" || key === "any") {
       check(Array.isArray(entries) && entries.length > 0, `${key} needs children`);
       entries.forEach((child, i) => validateConditions(child, refs, `${path}.${key}[${i}]`, depth + 1));
@@ -15,6 +23,7 @@ export function validateConditions(value = {}, refs = {}, path = "conditions", d
     else if (key === "locationFlags" || key === "npcFlags") {
       check(record(entries), `${key} needs targets`);
       for (const [target, flags] of Object.entries(entries)) {
+        if(key==='npcFlags' && target==='speaker' && refs.contract)check(refs.contract.speaker,'unsupported speaker context');
         check(validId(target), "invalid target");
         const definitions = key === "locationFlags" ? refs.world?.definitions : refs.npcs;
         check(!definitions || (key === "npcFlags" && target === "speaker") || Object.hasOwn(definitions, target), `unknown target ${target}`);
@@ -25,8 +34,14 @@ export function validateConditions(value = {}, refs = {}, path = "conditions", d
       check(Array.isArray(entries) && entries.every(["flags", "localFlags", "discoveries"].includes(key) ? safeKey : validId), `invalid ${key}`);
       const definitions = { locations: refs.world?.definitions, equipment: refs.content?.infrastructure, met: refs.npcs, completed: refs.conversations }[key];
       if (definitions) check(entries.every(id => Object.hasOwn(definitions, id)), `unknown ${key} reference`);
+      if (key === 'capabilities' && refs.content?.equipmentContracts) {
+        value[key] = entries.map(id => refs.content.equipmentAliases?.[id] ?? id);
+        value[key].forEach((id,i)=>{if(!Object.hasOwn(refs.content.equipmentContracts,id)){const at=`${path.replace(/\[(\d+)\]/g,'.$1')}.capabilities.${i}`;throw Object.assign(new Error(`Invalid ${at}: unknown capability ${id}.`),{path:at});}});
+        check(new Set(value[key]).size === value[key].length, 'duplicate capability reference');
+      }
     }
   }
+  if(depth===0 && Object.keys(value).length && refs.conditionSources)refs.conditionSources.push({path,conditions:structuredClone(value),...(refs.locationId?{locationId:refs.locationId}:{})});
 }
 
 export function needsBlockedReason(value = {}) {

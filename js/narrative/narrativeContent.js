@@ -36,6 +36,7 @@ export const narrativeContent = {
   },
   // Each family has one typed slot contract. Variants express the same claim.
   templates:{
+    equipment_provision:{slots:['name','provision'],variants:[['provision','I inspect the declared provision of {name}: {provision}']]},
     condition:{slots:['name','condition'],variants:[['plain','I find {name} {condition}.'],['condition','From what I can tell, {name} is {condition}.']]},
     disabled:{slots:['name'],variants:[['plain','I find {name} disabled.']]},
     diagnostic:{slots:['name','health','quantity'],variants:[['plain','I inspect {name}: {quantity} installed, condition {health}%.']]},
@@ -73,6 +74,11 @@ export const narrativeContent = {
     assembled:{slots:['name','age'],variants:[['built','I note {name} was assembled {age}.']]},
     vessel_composition:{slots:['name','moduleCount','dryMass','cargoVolume','fuelVolume'],variants:[['composition','I find {moduleCount} modules in {name}, with {dryMass} kg dry mass, {cargoVolume} m³ cargo volume, and {fuelVolume} m³ tank volume.']]},
     module_geometry:{slots:['name','category','width','length','depth','sizeBand'],variants:[['module','I inspect {name}: a {sizeBand} {category} module measuring {width} × {length} × {depth} m.']]},
+    physical_form:{slots:['name','form','features'],variants:[['shape','{name} has a {form} form with {features}.']]},
+    physical_shape:{slots:['name','form'],variants:[['shape','{name} has a {form} form.']]},
+    design_family:{slots:['name','family'],variants:[['known','I recognize the {family} design of {name}.']]},
+    design_lineage:{slots:['name','sources'],variants:[['sources','The understood design of {name} draws on {sources}.']]},
+    vessel_design:{slots:['name','family','revision'],variants:[['origin','{name} was built from the {family} design, revision {revision}.']]},
     people:{slots:['name'],variants:[['local','{name} is here with me.']]},
     research:{slots:['name','age'],variants:[['learned','I note research established {name} {age}.']]}
   }

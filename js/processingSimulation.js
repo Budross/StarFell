@@ -9,6 +9,19 @@ export { calculateProcessingReadiness as planIndustrialReadiness } from './proce
 export function advanceIndustrialInterval(state, elapsed, services, stats = {}) {
   return services.ledgerServices.withBatch(state,() => integrate(state,elapsed,services,stats));
 }
+// Shared physical boundary calculation for execution and pure projections.
+export function nextIndustrialInterval(state, hosts, limit = Infinity) {
+  let interval = limit;
+  for (const local of Object.values(state.locations)) if (local.journey?.remaining > 0) interval = Math.min(interval,local.journey.remaining);
+  for (const h of hosts) {
+    const power = h.power, slope = h.slope;
+    h.emptyAt = slope < 0 && power > 0 ? power/-slope : Infinity;
+    h.fullAt = slope > 0 && power < h.capacity ? (h.capacity-power)/slope : Infinity;
+    interval = Math.min(interval,h.emptyAt,h.fullAt);
+    for (const e of h.runs) if (e.speed > 0) interval = Math.min(interval,state.processing.runs[e.runId].workRemaining/e.speed);
+  }
+  return interval;
+}
 function integrate(state, elapsed, services, stats) {
   if (!Number.isFinite(elapsed) || elapsed <= 0) return { saveRequested: false, arrivals: [], processingTransitions: [] };
   const contexts = new Map(), arrivals = [], processingTransitions = [];
@@ -29,15 +42,7 @@ function integrate(state, elapsed, services, stats) {
       runs: h.runs.map(e => ({ ...e, run: state.processing.runs[e.runId] })) }]));
   };
   while (remaining > 0) {
-    const hosts = plans(); let interval = remaining;
-    for (const local of Object.values(state.locations)) if (local.journey?.remaining > 0) interval = Math.min(interval,local.journey.remaining);
-    for (const h of hosts.values()) {
-      const power = h.ctx.store.resources.power, slope = h.slope;
-      h.emptyAt = slope < 0 && power > 0 ? power/-slope : Infinity;
-      h.fullAt = slope > 0 && power < h.cap ? (h.cap-power)/slope : Infinity;
-      interval = Math.min(interval,h.emptyAt,h.fullAt);
-      for (const e of h.runs) if (e.speed > 0) interval = Math.min(interval,e.run.workRemaining/e.speed);
-    }
+    const hosts = plans(), interval = nextIndustrialInterval(state,hosts.values(),remaining);
     if (!(interval > 0) || !Number.isFinite(interval)) throw new Error('Invalid industrial integration boundary.');
     stats.intervals++;
     for (const h of hosts.values()) {

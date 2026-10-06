@@ -11,7 +11,7 @@ import { clearGame, loadGame, saveGame } from "./save.js";
 import cargoDisplay from "./cargoDisplay.js";
 import { CircularProgress } from "./CircularProgress.js";
 import initializeEventBus, { startEventBus } from "./eventBus.js";
-import consoleDisplay from "./consoleDisplay.js?v=narrative-receipts-1";
+import consoleDisplay from "./consoleDisplay.js?v=activity-logs-1";
 import terminalTabs from "./terminalTabs.js";
 import locationDisplay from "./locationDisplay.js";
 import transferDisplay from "./transferDisplay.js";
@@ -26,6 +26,8 @@ import shipyardDisplay from './shipyardDisplay.js';
 import vesselControlsDisplay from './vesselControlsDisplay.js';
 import createUiTour from './uiTour.js';
 import { firstRunMessages } from './streamContent.js';
+import itemKnowledgeDisplay from './itemKnowledgeDisplay.js';
+import itemContextDisplay from './itemContextDisplay.js';
 
 const systems = buildGameSystems();
 const { content, world, people, research, actions, contextFor } = systems;
@@ -81,7 +83,9 @@ tabs.registerTab({
     elements.feedback.setAttribute("aria-live", "polite");
   }
 });
-tabs.registerTab({ id: "workshop", label: "Workshop", panel: document.querySelector("#workshop-panel") });
+tabs.registerTab({ id: "workshop", label: "Workshop", panel: document.querySelector("#workshop-panel"),
+  onDeactivate() { renderItemContext.close(false); }
+});
 tabs.registerTab({ id: "locations", label: "Locations", panel: document.querySelector("#locations-panel") });
 tabs.registerTab({ id: "people", label: "People", panel: document.querySelector("#people-panel"),
   onActivate() { elements.feedback.setAttribute("aria-live", "off"); },
@@ -89,10 +93,14 @@ tabs.registerTab({ id: "people", label: "People", panel: document.querySelector(
 });
 tabs.registerTab({ id: "research", label: "Research", panel: document.querySelector("#research-panel") });
 tabs.registerTab({ id: "knowledge", label: "Knowledge", panel: document.querySelector("#knowledge-panel") });
-tabs.registerTab({ id: "shipyard", label: "Shipyard", panel: document.querySelector("#shipyard-panel") });
+tabs.registerTab({ id: "shipyard", label: "Shipyard", panel: document.querySelector("#shipyard-panel"),
+  onDeactivate() { renderShipyard.cancelInteraction(); }
+});
 tabs.activateTab("operations");
 bus.subscribe({}, message => {
   if (!["system", "error", "narrative"].includes(message.type)) return;
+  const logVisible = logDisplay.isMessageVisible?.(message) ?? tabs.getActiveTabId() === 'operations';
+  elements.feedback.setAttribute('aria-live', logVisible || tabs.getActiveTabId() === 'people' ? 'off' : 'polite');
   elements.feedback.textContent = message.text;
   elements.feedback.classList.toggle("error", message.type === "error");
 });
@@ -141,7 +149,7 @@ let previousFrameTime = null;
 actions.forEach(actionRegistry.registerAction);
 actionRegistry.initialize({ getState: runtime.getState, applyAction, getContext: contextFor, validateActions: actions => {
   validateActionScopes(actions, world);
-  if (actions.some(a => [a.id, a.name, ...(a.aliases ?? [])].some(name => ["talk", "people", "research", "look", "observe"].includes(name.trim().toLowerCase())))) throw new Error("talk, people, research, look, and observe are reserved presentation commands.");
+  if (actions.some(a => [a.id, a.name, ...(a.aliases ?? [])].some(name => ["talk", "people", "research", "look", "observe", "debug fog"].includes(name.trim().toLowerCase())))) throw new Error("talk, people, research, look, observe, and debug fog are reserved presentation commands.");
 } });
 let observationActions=[];
 const renderActions = playerActionsDisplay(id => handleAction(id, undefined, true), "#player-actions",group=>[
@@ -167,13 +175,32 @@ function toggleRepeating() {
     if (!handleAction(selectedGathering).ok) stopRepeating();
   }, 1000);
 }
-const renderCrafting = craftingDisplay(content, handleAction, actionRegistry.getActionStatus);
+const renderCrafting = craftingDisplay(content, handleAction, actionRegistry.getActionStatus, (id,opener) => renderItemContext.open(id,opener));
 const renderProcessing = processingDisplay(systems.processing,handleAction);
 const renderTransfer = transferDisplay(world, content, handleAction);
 const renderCargo = cargoDisplay(world, content, handleAction);
 const renderLocations = locationDisplay(world, content, handleAction, shipGraphView, shipStatus, actionRegistry.getActionStatus, (state, id) => getEntityLabel(state, systems, id));
 const renderPeople = dialogueDisplay(people, handleAction, () => tabs.activateTab("people"));
 const renderResearch = researchDisplay(research, handleAction, () => tabs.activateTab("research"));
+let workshopReturn = null;
+function itemReference(kind,id) {
+  if (kind === 'item') { tabs.activateTab('knowledge'); renderKnowledge.select(id); }
+  else if (kind === 'recipe') {
+    if (actionRegistry.getActionStatus(`selectRecipe:${id}`).available && handleAction(`selectRecipe:${id}`).ok) {
+      tabs.activateTab('workshop'); document.querySelector('#recipe-select').focus({preventScroll:true});
+    }
+  } else if (kind === 'location') { tabs.activateTab('locations'); renderLocations.select(id); }
+  else if (kind === 'process') { tabs.activateTab('workshop'); const heading=document.querySelector('#processing-heading'); heading.tabIndex=-1; heading.focus(); heading.scrollIntoView({block:'nearest'}); }
+  else if (kind === 'shipyard') tabs.activateTab('shipyard');
+}
+const renderKnowledge = itemKnowledgeDisplay(systems.itemKnowledge,research,itemReference,() => {
+  tabs.activateTab('workshop');
+  const target=workshopReturn?.isConnected && !workshopReturn.closest('[hidden]') ? workshopReturn : document.querySelector('#crafting-heading');
+  if (target) { target.tabIndex=target.matches('button') ? 0 : -1; target.focus({preventScroll:true}); }
+});
+const renderItemContext = itemContextDisplay(systems.itemKnowledge,handleAction,itemReference,(id,opener) => {
+  workshopReturn=opener; tabs.activateTab('knowledge'); renderKnowledge.select(id,true);
+});
 const renderShipyard = shipyardDisplay(systems, handleAction);
 const renderVesselControls = vesselControlsDisplay(systems, handleAction);
 
@@ -184,7 +211,7 @@ function loadOrCreateGame() {
     const notices = [];
     const loaded = saved === null ? createInitialState(crypto.getRandomValues(new Uint32Array(1))[0]) : migrateState(saved, notices);
     validateState(loaded);
-    if (saved && saved.saveVersion !== loaded.saveVersion) saveGame(loaded);
+    if (saved===null || saved.saveVersion !== loaded.saveVersion) saveGame(loaded);
     if (saved && saved.locationId !== loaded.locationId) migrationNotice = `Save updated: your former area position is now ${locationDefinition(loaded, world, loaded.locationId).name}. Assets and progress were preserved.`;
     migrationNotice = [migrationNotice, ...notices].filter(Boolean).join(" ");
     return loaded;
@@ -211,12 +238,13 @@ function formatCycle(seconds) {
     .map(value => String(value).padStart(2, "0")).join(":");
 }
 
-function showFeedback(text, type = "system", gathering = null) {
+function showFeedback(text, type = "system", gathering = null, activity = null) {
   bus.publish({
     author: type === "command" ? "PLAYER" : "SYSTEM",
     type,
     text,
     gathering,
+    activity,
     cycle: formatCycle(runtime.getState().simulationTime)
   });
 }
@@ -307,6 +335,8 @@ function render() {
   renderLocations(state);
   renderPeople(state);
   renderResearch(state);
+  renderKnowledge(state);
+  renderItemContext(state);
   renderShipyard(state);
   renderVesselControls(state);
   const stable = view.powerRate >= 0;
@@ -324,7 +354,8 @@ function render() {
 function applyAction(execute, action, payload) {
   if (lastGatheringActionId && lastGatheringActionId !== action.id) logDisplay.breakGathering?.();
   lastGatheringActionId = action.gathering ? action.id : null;
-  if (!["selection", "dialogue"].includes(action.group) && !action.gathering) showFeedback(`> ${action.name}`, "command");
+  const activity = action.gathering ? 'gathering' : action.collection === 'crafting' ? 'crafting' : null;
+  if (!["selection", "dialogue"].includes(action.group) && !action.gathering) showFeedback(`> ${action.name}`, "command", null, activity);
   const result=runtime.applyAction(execute);
   const { previous, state, message } = result;
   renderPeople.committed(previous, state, action, payload, message);
@@ -333,13 +364,14 @@ function applyAction(execute, action, payload) {
   if (message) {
     showFeedback(message, "system", action.gathering ? {
       actionId: action.id, locationId: state.locationId, ...action.gathering
-    } : null);
+    } : null, activity);
   }
   safeNarrative(()=>narrativePresentation.committed(result,{action,payload}));
   return message;
 }
 
 function handleAction(actionId, payload, fromButton = false) {
+  let activity = null;
   if (selectedGathering && selectedGathering !== actionId) stopRepeating();
   try {
     if (actionId.startsWith('observe-equipment:')) {
@@ -349,6 +381,8 @@ function handleAction(actionId, payload, fromButton = false) {
       const result=observe(choice.request);
       return {ok:result?.status==='ok',message:result?.text};
     }
+    const actionStatus = actionRegistry.getActionStatus(actionId, payload);
+    activity = actionStatus.gathering ? 'gathering' : actionStatus.collection === 'crafting' ? 'crafting' : null;
     const message = executeAction(actionId, payload);
     if (fromButton) {
       const status = actionRegistry.getActionStatus(actionId);
@@ -360,7 +394,7 @@ function handleAction(actionId, payload, fromButton = false) {
     return { ok: true, message };
   } catch (error) {
     if (selectedGathering === actionId) stopRepeating();
-    showFeedback(error.message, "error");
+    showFeedback(error.message, "error", null, activity);
     return { ok: false, message: error.message };
   }
 }
@@ -411,6 +445,13 @@ elements.commandForm.addEventListener("submit", event => {
   }
   if (["talk", "people"].includes(command.toLowerCase())) { renderPeople.show(); elements.commandInput.value = ""; return; }
   if (command.toLowerCase() === "research") { tabs.activateTab("research"); elements.commandInput.value = ""; return; }
+  if (command.toLowerCase() === "debug fog") {
+    const enabled = renderLocations.toggleFogOfWar();
+    tabs.activateTab('locations');
+    showFeedback(enabled ? 'Debug: fog of war on. Showing discovered locations.' : 'Debug: fog of war off. Showing all locations; discoveries and travel permissions are unchanged.');
+    elements.commandInput.value = '';
+    return;
+  }
   if (['look','observe'].includes(command.toLowerCase())) { observeLocation(); elements.commandInput.value=''; return; }
   try {
     const actionId = observationActions.find(action=>[action.id,action.name].some(name=>name.toLowerCase()===command.toLowerCase()))?.id ?? resolveAction(command);

@@ -2,7 +2,7 @@ import { advanceSimulation, composeSimulationSteps } from "./simulationRegistry.
 
 // Owns the current state and commit policy. No DOM or notifications occur here.
 // Callers supply elapsed visible time; the browser owns visibility/clock sampling.
-export function createGameRuntime({ initialState, save, simulationSteps, simulationContext, reconcileAction, validate }) {
+export function createGameRuntime({ initialState, save, simulationSteps, simulationContext, reconcileAction, validate, prepareAction = () => {} }) {
   if (!Array.isArray(simulationSteps) || typeof reconcileAction !== 'function' || typeof validate !== 'function' || typeof save !== 'function')
     throw new Error('Runtime requires composed simulation, reconciliation, validation, and save capabilities.');
   const steps = composeSimulationSteps(simulationSteps);
@@ -12,6 +12,7 @@ export function createGameRuntime({ initialState, save, simulationSteps, simulat
 
   function applyAction(execute) {
     const candidate = structuredClone(state);
+    prepareAction(candidate);
     let message = execute(candidate);
     const closure = reconcileAction(candidate);
     if (closure) message = [message, closure].filter(Boolean).join(" ");

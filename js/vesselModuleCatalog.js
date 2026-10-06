@@ -1,10 +1,11 @@
 import { decimalRatio, fromBigInt, volumeUnits, checkedAdd, checkedMultiply, record } from './quantities.js';
 import { validId } from './conditions.js';
+import { EQUIPMENT_CAPABILITY_CONTRACTS, compileEquipmentCapabilities } from './equipmentCapabilityContracts.js';
 
 export const SHIPYARD_CELL_SIZE_METERS = 1;
 export const VESSEL_REFERENCE_MASS_KG = 250;
 export const MODULE_CATEGORIES = Object.freeze(['Core', 'Propulsion', 'Logistics', 'Systems', 'Industrial']);
-const equipmentCapabilities = ['radio', 'surfaceExtraction', 'thermalRefining', 'fabrication', 'benchAnalysis'];
+export const MODULE_EQUIPMENT_CAPABILITIES = Object.freeze(Object.keys(EQUIPMENT_CAPABILITY_CONTRACTS));
 const check = (ok, message) => { if (!ok) throw new Error(`Invalid vessel module: ${message}.`); };
 function fields(value, allowed, label) {
   check(record(value) && Object.keys(value).every(k => allowed.includes(k)), label);
@@ -17,7 +18,7 @@ function freeze(value) {
 
 // A projection of the existing Product catalog, with equipment definitions for
 // existing domain consumers. It never creates Workshop installation directives.
-export function compileVesselModules(items, infrastructure) {
+export function compileVesselModules(items, infrastructure, contracts = EQUIPMENT_CAPABILITY_CONTRACTS) {
   const modules = {};
   for (const item of Object.values(items)) {
     if (item.vesselModule === undefined) continue;
@@ -62,13 +63,13 @@ export function compileVesselModules(items, infrastructure) {
       check(items[caps.propulsion.fuelItemId]?.category === 'component', `${item.id} propulsion fuel`);
       for (const key of ['travelSpeed', 'distancePerFuelUnit']) check(Number.isFinite(caps.propulsion[key]) && caps.propulsion[key] > 0, `${item.id} ${key}`);
       equipment.travelSpeed = caps.propulsion.travelSpeed;
-      equipment.capabilities.push('propulsion');
+      equipment.propulsionSelector = 'propulsion';
     }
     if (caps.equipment) {
       fields(caps.equipment, ['powerPerSecond', 'capacityBonus', 'capabilities', 'processing'], `${item.id} equipment`);
       const extra = caps.equipment;
       check(extra.powerPerSecond === undefined || Number.isFinite(extra.powerPerSecond), `${item.id} power rate`);
-      check(extra.capabilities === undefined || Array.isArray(extra.capabilities) && new Set(extra.capabilities).size === extra.capabilities.length && extra.capabilities.every(id => equipmentCapabilities.includes(id)), `${item.id} unsupported equipment capability`);
+      extra.capabilities = compileEquipmentCapabilities(extra.capabilities, contracts, `items.${item.id}.vesselModule.capabilities.equipment.capabilities`);
       if (extra.capacityBonus) { fields(extra.capacityBonus, ['power'], `${item.id} reserve`); positive(extra.capacityBonus.power, 'power capacity'); }
       Object.assign(equipment, structuredClone(extra), { capabilities: [...equipment.capabilities, ...(extra.capabilities ?? [])] });
     }

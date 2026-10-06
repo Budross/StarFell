@@ -5,7 +5,7 @@ import { deriveVessel, moduleGeometry } from '../../vessels.js';
 import { fact } from '../narrativeFacts.js';
 import { historyAge } from '../narrativeContext.js';
 
-export function vesselFactProvider({ world, content }) {
+export function vesselFactProvider({ world, content,vesselDesigns={} }) {
   return { id: 'vessels', provide(state, scope) {
     const facts = [];
     for (const [id, local] of Object.entries(state.locations)) {
@@ -19,6 +19,8 @@ export function vesselFactProvider({ world, content }) {
           depth: Number(derived.geometry.depth.toFixed(3)) }, scope, { importance: .7 }));
       const detailed = canUse(state, scope.actorId, id, 'viewCargo') && (!scope.speaker || canUse(state, scope.observerId, id, 'viewCargo'));
       if (!detailed) continue;
+      const origin=local.designOrigin,design=origin&&vesselDesigns[origin.designId];
+      if(!scope.speaker&&!scope.equipmentId&&design&&state.knowledge.discoveries[design.discoveryId])facts.push(fact('vessels','known_vessel_design',subject,{name:def.name,family:origin.family.replace(/([a-z])([A-Z])/g,'$1 $2').toLowerCase(),revision:origin.revision},scope,{exposure:'participant_private',importance:.6}));
       if (!scope.equipmentId) facts.push(fact('vessels', 'vessel_composition', subject,
         { name: def.name, moduleCount: derived.moduleCount, dryMass: derived.dryMassKg,
           cargoVolume: derived.cargoVolumeUnits / 1_000_000, fuelVolume: derived.fuelVolumeUnits / 1_000_000 }, scope,

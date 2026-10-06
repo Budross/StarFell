@@ -1,4 +1,4 @@
-import { record, validId, safeKey, validateConditions } from "../conditions.js";
+import { record, validId, safeKey, validateConditions, conditionContracts } from "../conditions.js";
 import { conditionEntityReferences } from "../conditionReferences.js";
 import { compileEffects, describeEffects } from "../effects.js";
 
@@ -12,13 +12,26 @@ function stable(value) {
   if (record(value)) return Object.fromEntries(Object.keys(value).sort().map(key => [key, stable(value[key])]));
   return value;
 }
+// A known capability spelling change is compatible only inside predicate fields.
+// Effects, awards, samples and all other contract data retain strict comparison.
+function canonicalContractPredicates(contract) {
+  const visit = conditions => {
+    if (!record(conditions)) return;
+    if (Array.isArray(conditions.capabilities)) conditions.capabilities = conditions.capabilities.map(id => id === 'radio' ? 'radioCommunication' : id);
+    (conditions.all ?? []).forEach(visit); (conditions.any ?? []).forEach(visit); if (conditions.not) visit(conditions.not);
+  };
+  visit(contract.eligibility);
+  for (const rule of contract.evidence ?? []) { visit(rule.conditions); for (const variant of rule.variants ?? []) visit(variant.conditions); }
+  return contract;
+}
 
 // Additive routes keep all old budgets intact. Altered thresholds, predicates,
 // or existing awards need an explicit migration rather than a silent reset.
 export function isAdditiveContract(previous, current) {
   if (previous === current) return true;
   try {
-    const before = JSON.parse(previous), after = JSON.parse(current);
+    const before = canonicalContractPredicates(JSON.parse(previous)), after = canonicalContractPredicates(JSON.parse(current));
+    if (JSON.stringify(stable(before)) === JSON.stringify(stable(after))) return true;
     if (!record(before) || !Array.isArray(before.evidence) || before.evidence.length === 0 ||
       before.threshold !== after.threshold || JSON.stringify(before.eligibility) !== JSON.stringify(after.eligibility) ||
       JSON.stringify(stable(before.effects ?? [])) !== JSON.stringify(stable(after.effects ?? []))) return false;
@@ -48,17 +61,20 @@ export function buildResearchCatalog(source, { content, world, people, externalD
     ...effectMetadata.filter(m => m.kind === "discovery" && m.access === "produce").map(m => m.id)]);
   check([...ids].every(safeKey), "discovery IDs");
   const tags = new Set(Object.values(content.items).flatMap(item => item.tags));
-  const capabilities = new Set(Object.values(content.infrastructure).flatMap(item => item.capabilities));
+  const capabilities = new Set(Object.keys(content.equipmentContracts));
   check(Array.isArray(catalog.repetition) && catalog.repetition.length > 0 && catalog.repetition.length <= 10 &&
     catalog.repetition[0] === 100 && catalog.repetition.every((n, i, a) => integer(n, 1, 100) && (!i || n <= a[i - 1])), "repetition percentages");
   check(Number.isFinite(catalog.bonusChance) && catalog.bonusChance >= 0 && catalog.bonusChance <= 1 && integer(catalog.bonusPercent, 0, 100), "chance policy");
-  catalog.predicates = {}; catalog.credits = {}; catalog.contracts = {}; catalog.warnings = [];
+  catalog.conditionSources=[];catalog.predicates = {}; catalog.credits = {}; catalog.contracts = {}; catalog.warnings = [];
   function condition(value = {}, path) {
-    validateConditions(value, { content, world, npcs: people.npcs, conversations: people.dialogue.conversations }, `research ${path}`);
+    const [kind,id,ruleId,variantId]=path.split('/');
+    const discovery=catalog.discoveries[id],ruleIndex=discovery?.evidence?.findIndex(r=>r.id===ruleId);
+    const authoredPath=kind==='method'?`research.methods.${id}.conditions`:kind==='discovery'?`research.discoveries.${id}.eligibility`:kind==='hint'?`research.hints.${id}.conditions`:
+      `research.discoveries.${id}.evidence.${ruleIndex}${kind==='variant'?`.variants.${discovery.evidence[ruleIndex].variants.findIndex(v=>v.id===variantId)}`:''}.conditions`;
+    validateConditions(value, { content, world, npcs: people.npcs, conversations: people.dialogue.conversations,contract:conditionContracts.state,conditionSources:catalog.conditionSources }, authoredPath);
     function references(c) {
       check(!c.completed && !Object.hasOwn(c.npcFlags ?? {}, "speaker"), `explicit NPC flags required at ${path}`);
-      check((c.discoveries ?? []).every(id => ids.has(id)), `unknown discovery at ${path}`);
-      check((c.capabilities ?? []).every(id => capabilities.has(id)), `unknown capability at ${path}`);
+      check((c.capabilities ?? []).every(id => capabilities.has(id)), `unknown capability at ${authoredPath}`);
       (c.all ?? []).forEach(references); (c.any ?? []).forEach(references); if (c.not) references(c.not);
     }
     references(value); catalog.predicates[path] = value; return path;
@@ -91,13 +107,15 @@ export function buildResearchCatalog(source, { content, world, people, externalD
     method.predicate = condition(method.conditions, `method/${id}`); method.id = id;
   }
   for (const [id, discovery] of Object.entries(catalog.discoveries)) {
-    keys(discovery, ["name", "description", "families", "eligibility", "threshold", "evidence", "legacyGrant", "retired", "effects"], `discovery ${id}`);
+    keys(discovery, ["name", "description", "families", "eligibility", "threshold", "evidence", "legacyGrant", "retired", "effects", "studyOnly", "classification"], `discovery ${id}`);
+    check(discovery.studyOnly===undefined||discovery.studyOnly===true,`study-only ${id}`);
+    check(discovery.classification===undefined||['principle','design'].includes(discovery.classification),`classification ${id}`);
     check(validId(id) && text(discovery.name) && text(discovery.description) && integer(discovery.threshold, 1), `discovery ${id}`);
     check(Array.isArray(discovery.families) && discovery.families.length > 0 && discovery.families.every(key => Object.hasOwn(catalog.families, key)), `families of ${id}`);
     for (const key of ["legacyGrant", "retired"]) check(discovery[key] === undefined || typeof discovery[key] === "boolean", `${key} on ${id}`);
     discovery.id = id; discovery.thresholdUnits = discovery.threshold * INSIGHT_SCALE;
     discovery.predicate = condition(discovery.eligibility, `discovery/${id}`);
-    check(Array.isArray(discovery.evidence) && discovery.evidence.length > 0, `evidence of ${id}`);
+    check(Array.isArray(discovery.evidence) && (discovery.studyOnly ? discovery.evidence.length===0 && !discovery.effects.length : discovery.evidence.length > 0), `evidence of ${id}`);
     const seen = new Set(); let potential = 0;
     for (const rule of discovery.evidence) {
       keys(rule, ["id", "samples", "conditions", "insight", "observation", "once", "variants", "methods"], `evidence of ${id}`);
@@ -126,7 +144,7 @@ export function buildResearchCatalog(source, { content, world, people, externalD
       }).sort((a, b) => b.priority - a.priority);
     }
     discovery.evidence.sort((a, b) => a.id.localeCompare(b.id));
-    if (potential < discovery.threshold) catalog.warnings.push(`${id}: total baseline evidence cannot reach its threshold.`);
+    if (!discovery.studyOnly && potential < discovery.threshold) catalog.warnings.push(`${id}: total baseline evidence cannot reach its threshold.`);
     // Save a mechanical contract only for used progress; text-only edits stay compatible.
     catalog.contracts[id] = JSON.stringify(stable({ threshold: discovery.threshold, eligibility: discovery.eligibility ?? {}, effects: discovery.effects,
       evidence: discovery.evidence.map(r => ({ id: r.id, conditions: r.conditions ?? {}, methods: r.methods ? [...r.methods].sort() : null, samples: r.samples,

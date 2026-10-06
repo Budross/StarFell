@@ -1,35 +1,50 @@
+import { hasPropulsionDefinition } from './shipEquipment.js';
+import { vesselLinkReason } from './vesselLinkPolicy.js';
 import { setScopedFlag } from "./flags.js";
 import { validateEquipment } from "./equipment.js";
-import { validateConditions } from "./conditions.js";
+import { validateConditions,conditionContracts } from "./conditions.js";
 import { conditionReason } from "./conditionContext.js";
 import { collectDiscoveryReferences, conditionEntityReferences } from "./conditionReferences.js";
-import { capacity, moveExact, moveReason } from "./resources.js";
+import { capacity, moveExact, moveReason, observeItemReceipts } from "./resources.js";
 import { compileAmounts, volumeUnits, validateQuantity, formatQuantity } from "./quantities.js";
 import { storageSummary } from "./storage.js";
 import { locationDefinition, locationInstances, getEntityLocation } from "./entityQueries.js";
 import { isEntityActive } from "./entities.js";
 import { canUse, permissionReason, permissions, ownerOf, defaultAccess, validateAccess } from "./authority.js";
+import { encounterItem } from './itemKnowledgeState.js';
+import { hasCapability } from './equipment.js';
+import { validateLearningPolicy } from './itemKnowledgePolicy.js';
 import { entityReference } from "./entityReferences.js";
 import { isTerminal } from "./entities.js";
 import { compileResourceNodes } from './processingCatalog.js';
 import { compileEffects, describeEffects, applyEffects } from "./effects.js";
 import { validateNarrativeMetadata,mergeNarrativeMetadata } from './narrative/narrativeMetadata.js';
+import {getEntity,validEntityId} from './entities.js';
+import {cellAt,containsPosition,validateSpace,distance,compareKeys} from './worldSpace.js';
+import {areaKnowledge,admitKnownArea,admitDetectedArea,detectedContacts} from './mapKnowledge.js';
 
 const record = value => value !== null && typeof value === "object" && !Array.isArray(value);
 const validId = id => typeof id === "string" && /^[A-Za-z][A-Za-z0-9_-]*$/.test(id) && !["constructor", "prototype", "__proto__"].includes(id);
 const check = (ok, message) => { if (!ok) throw new Error(`Invalid locations: ${message}`); };
 const union = (...lists) => [...new Set(lists.flat())];
 
+export function locationProducerMetadata(world) {
+  return Object.values(world.definitions).flatMap(def=>[
+    ...Object.entries(def.initialFlags??{}).filter(([,value])=>value===true).map(([flag])=>({kind:'flag',scope:'location',targetId:def.id,flag,value:true})),
+    ...['consoleExamined',...def.sceneObjects.filter(s=>!s.locationId).map(s=>`examined:${s.id}`)].map(flag=>({kind:'flag',scope:'location',targetId:def.id,flag,value:true}))
+  ]);
+}
+
 export function compileLocationCatalog(source, content) {
   try { return compileLocations(source, content); }
-  catch (error) { throw new Error(error.message.startsWith("Invalid locations:") ? error.message : `Invalid locations: ${error.message}`); }
+  catch (error) { throw Object.assign(new Error(error.message.startsWith("Invalid locations:") ? error.message : `Invalid locations: ${error.message}`),{path:error.path}); }
 }
 function compileLocations(source, content) {
   check(record(source.types) && record(source.locations), "types and locations are required.");
   check(Number.isFinite(source.connectionDistance) && source.connectionDistance > 0, "connection distance must be positive.");
-  const definitions = {};
-  function conditions(value = {}) {
-    validateConditions(value, { content }, "locations conditions");
+  const definitions = {}, conditionSources = [];
+  function conditions(value = {},path) {
+    validateConditions(value, { content,contract:conditionContracts.state,conditionSources,locationId:path.split('.')[1] }, path);
   }
   for (const id of Object.keys(source.templates ?? {})) check(!Object.hasOwn(source.locations, id), `duplicate template ${id}.`);
   const entries = { ...source.locations, ...Object.fromEntries(Object.entries(source.templates ?? {}).map(([id, def]) => [id, { ...def, spawn: false }])) };
@@ -70,7 +85,7 @@ function compileLocations(source, content) {
     check(def.modularVessel === undefined || typeof def.modularVessel === 'boolean' && def.mobile && def.spawn === false && def.capacityVolumeUnits === 0 && def.capacities?.power === 0, `modular shell for ${id}.`);
     if (def.mobile) {
       def.initialDockedAtId ??= null;
-      check(validId(def.propulsionCapability) && Object.values(content.infrastructure).some(m => m.capabilities.includes(def.propulsionCapability)), `propulsionCapability for ${id}.`);
+      check(validId(def.propulsionCapability) && hasPropulsionDefinition(content,def.propulsionCapability), `propulsionCapability for ${id}.`);
       for (const key of ["localTravelPowerCost", "areaTravelPowerCost", "localTravelDistance", "travelSpeed"]) {
         check(Number.isFinite(def[key]) && (key.endsWith("PowerCost") ? def[key] >= 0 : def[key] > 0), `${key} for ${id}.`);
       }
@@ -82,7 +97,12 @@ function compileLocations(source, content) {
     validateAccess(def.initialAccess);
     check(def.spawn === undefined || typeof def.spawn === "boolean", `spawn for ${id}.`);
     if (def.spawn === false) check(def.kind === "site", `only sites/ships support templates (${id}).`);
-    if (def.kind === "area") check(Array.isArray(def.position) && def.position.length === 2 && def.position.every(Number.isFinite) && !def.areaId, `area position for ${id}.`);
+    if (def.kind === "area") {
+      check(Array.isArray(def.position) && def.position.length === 2 && def.position.every(Number.isFinite) && !def.areaId, `area position for ${id}.`);
+      check(def.initialMapKnowledge===undefined || ['UNKNOWN','DETECTED','KNOWN'].includes(def.initialMapKnowledge),`map knowledge for ${id}.`);
+      check(def.generationConstraints===undefined || record(def.generationConstraints) && Object.keys(def.generationConstraints).every(k=>['exclusionRadius','minimumSpacing'].includes(k)) && Object.values(def.generationConstraints).every(n=>Number.isFinite(n)&&n>=0),`generation constraints for ${id}.`);
+    }
+    def.nodeStatePolicy='catalogReconciled';
     for (const key of ["initialResources", "capacities"]) def[key] = { ...template[key], ...authored[key] };
     def.initialInfrastructure = {};
     for (const group of union(Object.keys(template.initialInfrastructure ?? {}), Object.keys(authored.initialInfrastructure ?? {}))) {
@@ -99,19 +119,19 @@ function compileLocations(source, content) {
         check(record(scene) && validId(scene.id) && !seen.has(scene.id), `scene identity on ${id}.`);
         seen.add(scene.id);
         check(scene.locationId || (typeof scene.name === "string" && typeof scene.description === "string"), `scene text on ${id}.`);
-        conditions(scene.conditions);
+        conditions(scene.conditions,`locations.${id}.sceneObjects.${scene.id}.conditions`);
         scenes.set(scene.id, structuredClone(scene));
       }
     }
     for (const removed of authored.removeSceneObjects ?? []) { check(scenes.has(removed), `unknown removed scene ${removed}.`); scenes.delete(removed); }
     def.sceneObjects = [...scenes.values()];
-    conditions(def.conditions);
-    conditions(def.accessConditions);
+    conditions(def.conditions,`locations.${id}.conditions`);
+    conditions(def.accessConditions,`locations.${id}.accessConditions`);
     def.startupMessages ??= [];
     check(Array.isArray(def.startupMessages), `startup messages on ${id}.`);
     for (const message of def.startupMessages) {
       check(record(message) && typeof message.text === "string" && message.text.trim(), `startup message on ${id}.`);
-      conditions(message.conditions);
+      conditions(message.conditions,`locations.${id}.startupMessages.${def.startupMessages.indexOf(message)}.conditions`);
       if (message.equipment !== undefined || message.healthBelow !== undefined) {
         check(Object.hasOwn(content.infrastructure, message.equipment) && Number.isFinite(message.healthBelow) &&
           message.healthBelow >= 0 && message.healthBelow <= 1, `startup equipment on ${id}.`);
@@ -119,14 +139,17 @@ function compileLocations(source, content) {
     }
     for (const [asset, amount] of Object.entries(def.capacities)) check(content.utilities.includes(asset) && Number.isFinite(amount) && amount >= 0 && amount <= Number.MAX_SAFE_INTEGER, `utility capacity ${id}/${asset}.`);
     def.initialResources = compileAmounts(def.initialResources, content);
+    if(def.kind==='area')check(Object.values(def.initialResources).every(n=>n===0)&&Object.values(def.initialInfrastructure).every(e=>!e.quantity),`area cannot carry cargo or equipment (${id}).`);
     check(Object.keys(def.initialInfrastructure).every(group => Object.hasOwn(content.infrastructure, group)), `unknown infrastructure on ${id}.`);
     definitions[id] = def;
   }
   for (const def of Object.values(definitions)) {
-    def.inspectionEffects = compileEffects(def.inspectionEffects, { content, world: { definitions } }, { kind: "inspection" }, `locations.${def.id}.inspectionEffects`);
+    if(def.primaryLocalId!==undefined)check(def.kind==='area' && definitions[def.primaryLocalId]?.kind==='site' && !definitions[def.primaryLocalId].mobile && definitions[def.primaryLocalId].areaId===def.id,`primary Local for ${def.id}.`);
+    for (const node of Object.values(def.resourceNodes ?? {})) validateLearningPolicy(node.learnWhen,{ content,world:{ definitions },conditionSources,locationId:def.id },`locations.${def.id}.nodes.${node.id}`);
+    def.inspectionEffects = compileEffects(def.inspectionEffects, { content, world: { definitions },contract:conditionContracts.state }, { kind: "inspection" }, `locations.${def.id}.inspectionEffects`);
     for (const scene of def.sceneObjects) {
       check(!scene.locationId || scene.effects === undefined, `location scene cannot have inspection effects (${def.id}/${scene.id}).`);
-      scene.effects = compileEffects(scene.effects, { content, world: { definitions } }, { kind: "inspection" }, `locations.${def.id}.sceneObjects.${scene.id}.effects`);
+      scene.effects = compileEffects(scene.effects, { content, world: { definitions },contract:conditionContracts.state }, { kind: "inspection" }, `locations.${def.id}.sceneObjects.${scene.id}.effects`);
     }
     if (def.kind === "site" && def.spawn !== false) check(definitions[def.areaId]?.kind === "area", `unknown area on ${def.id}.`);
     if (def.mobile && def.initialDockedAtId !== null && def.spawn !== false) {
@@ -135,13 +158,13 @@ function compileLocations(source, content) {
     }
     for (const scene of def.sceneObjects) if (scene.locationId) check(Object.hasOwn(definitions, scene.locationId), `unknown scene location ${scene.locationId}.`);
     for (const cond of [def.conditions, def.accessConditions, ...def.sceneObjects.map(s => s.conditions), ...def.startupMessages.map(m => m.conditions)]) {
-      validateConditions(cond, { content, world: { definitions } }, `locations ${def.id}`);
+      validateConditions(cond, { content, world: { definitions },contract:conditionContracts.state }, `locations ${def.id}`);
     }
   }
   // Item conditions stay owned by the item catalog; cross-catalog references are checked here.
   function references(value) {
     if (!value || typeof value !== "object") return;
-    if (value.conditions) validateConditions(value.conditions, { content, world: { definitions } }, "locations item conditions");
+    if (value.conditions) validateConditions(value.conditions, { content, world: { definitions },contract:conditionContracts.state }, "locations item conditions");
     Object.values(value).forEach(references);
   }
   references(content.items);
@@ -157,14 +180,15 @@ function compileLocations(source, content) {
   ]);
   const effectMetadata = effectSources.flatMap(source => describeEffects(source.effects, source.path));
   const discoveryReferences = collectDiscoveryReferences(Object.values(definitions).flatMap(def =>
-    [def.conditions, def.accessConditions, ...def.sceneObjects.map(scene => scene.conditions), ...def.startupMessages.map(message => message.conditions)]),
+    [def.conditions, def.accessConditions, ...Object.values(def.resourceNodes ?? {}).map(n => n.learnWhen?.conditions), ...def.sceneObjects.map(scene => scene.conditions), ...def.startupMessages.map(message => message.conditions)]),
     effectMetadata.filter(m => m.kind === "discovery" && m.access === "produce").map(m => m.id));
-  const world = { definitions, links, startId: source.startId, discoveryReferences, effectSources, vesselModules: content.vesselModules,
+  const world = { conditionSources,definitions, links, connectionDistance:source.connectionDistance,startId: source.startId, discoveryReferences, effectSources, vesselModules: content.vesselModules,
     initialSpawns: Object.values(definitions).filter(d => d.spawn !== false).map(d => ({ id: d.id, definitionId: d.id,
       areaId: d.kind === "site" ? d.areaId : null, dockedAtId: d.mobile ? d.initialDockedAtId : null,
       ownerId: d.initialOwnerId, controllerId: d.initialControllerId, access: structuredClone(d.initialAccess), lifecycle: d.initialLifecycle })) };
+  Object.defineProperty(world,'resolveLocationDefinition',{value:(state,id)=>resolveLocationDefinition(state,world,id),enumerable:false});
   world.entityReferences = Object.values(definitions).flatMap(def => [
-    ...[def.conditions, def.accessConditions, ...def.sceneObjects.map(s => s.conditions), ...def.startupMessages.map(m => m.conditions)]
+    ...[def.conditions, def.accessConditions, ...Object.values(def.resourceNodes ?? {}).map(n => n.learnWhen?.conditions), ...def.sceneObjects.map(s => s.conditions), ...def.startupMessages.map(m => m.conditions)]
       .flatMap(c => conditionEntityReferences(c, `locations:${def.id}`)),
     ...def.sceneObjects.filter(s => s.locationId).map(s => entityReference(`scene:${def.id}/${s.id}`, s.locationId, "content"))
   ]).concat(effectMetadata.filter(m => m.kind === "entity" && !["current", "speaker"].includes(m.targetId)));
@@ -206,8 +230,8 @@ export function createLocationState(def, content) {
   return {
     ownerId: def.initialOwnerId, areaId: def.kind === "site" ? def.areaId : null,
     ...(def.mobile ? { dockedAtId: def.initialDockedAtId, journey: null } : {}),
-    resources: Object.fromEntries(Object.keys(content.resources).map(id => [id, def.initialResources[id] ?? 0])),
-    infrastructure: Object.fromEntries(Object.keys(content.infrastructure).map(id => [id, {
+    resources: Object.fromEntries((def.kind==='area'?content.utilities:Object.keys(content.resources)).map(id => [id, def.initialResources[id] ?? 0])),
+    infrastructure: Object.fromEntries((def.kind==='area'?[]:Object.keys(content.infrastructure)).map(id => [id, {
       quantity: 0, health: 1, enabled: true, upgrades: [], ...structuredClone(def.initialInfrastructure[id] ?? {})
     }])), flags: {}, resourceNodes: Object.fromEntries(Object.entries(def.resourceNodes ?? {}).map(([id,node]) => [id,{ resourceId: node.resourceId, remaining: node.initialReserve }]))
   };
@@ -217,16 +241,24 @@ export function effectiveCapacities(def, content) {
   return Object.fromEntries(content.utilities.map(id => [id, def.capacities[id] ?? (def.kind === "area" ? 0 : content.resources[id].baseCapacity)]));
 }
 
+const neutralAreaEquipment=new WeakMap();
+function areaInfrastructure(local,content) {
+  if(!neutralAreaEquipment.has(content))neutralAreaEquipment.set(content,Object.freeze(Object.fromEntries(Object.keys(content.infrastructure).map(id=>[id,Object.freeze({quantity:0,health:1,enabled:true,upgrades:Object.freeze([])})]))));
+  const neutral=neutralAreaEquipment.get(content);
+  return Object.keys(local.infrastructure).length?{...neutral,...local.infrastructure}:neutral;
+}
+
 export function validateLocalState(local, def, content, world, unplaced = false) {
   const fail = message => { throw new Error(`Invalid ${message} at ${def.name}.`); };
   if (!record(local) || !(local.ownerId === undefined || local.ownerId === null || validId(local.ownerId)) ||
       (!unplaced && (def.kind === "area" ? local.areaId !== null : world.definitions[local.areaId]?.kind !== "area"))) fail("ownership or area");
   if (!record(local.resources) || !record(local.infrastructure) || !record(local.flags) || Object.values(local.flags).some(v => typeof v !== "boolean")) fail("local assets or flags");
   if (Object.keys(local.resources).some(id => !Object.hasOwn(content.resources, id)) || Object.keys(local.infrastructure).some(id => !Object.hasOwn(content.infrastructure, id))) fail("unknown saved asset");
-  validateEquipment(local.infrastructure, content, fail);
+  validateEquipment(def.kind==='area'?areaInfrastructure(local,content):local.infrastructure, content, fail);
+  if(def.kind==='area'&&Object.values(local.infrastructure).some(e=>e.quantity!==0))fail('area equipment');
   const storage = { ...local, capacities: effectiveCapacities(def, content), capacityVolumeUnits: def.capacityVolumeUnits };
   for (const id of Object.keys(content.resources)) {
-    const amount = local.resources[id];
+    const amount = def.kind==='area'?(local.resources[id]??0):local.resources[id];
     validateQuantity(amount, id, content);
     if (content.utilities.includes(id) && amount > capacity(storage, id, content)) fail(`${id} quantity`);
   }
@@ -240,8 +272,13 @@ export function getLocationContext(state, content, world, id = state.locationId,
   if (!definition || !local || state.entities && !isEntityActive(state, id)) throw new Error(`Unknown or unavailable location: ${id}`);
   const owned = state.entities ? ownerOf(state, id) === actorId : local.ownerId === actorId;
   const access = Object.fromEntries(permissions.map(p => [p, canUse(state, actorId, id, p)]));
-  const store = { resources: local.resources, infrastructure: local.infrastructure,
+  const store = { resources: local.resources, infrastructure: definition.kind==='area'?areaInfrastructure(local,content):local.infrastructure,
     capacities: effectiveCapacities(definition, content), capacityVolumeUnits: definition.capacityVolumeUnits };
+  observeItemReceipts(local.resources,rewards => {
+      const contact=definition.controlMode!=='commanded' || !vesselLinkReason(state,id,{world,content,isKnown:(s,target)=>isKnown(s,world,content,target)});
+      if (actorId === 'player' && contact && access.viewCargo && (id === state.locationId || owned)) for (const [itemId,amount] of Object.entries(rewards))
+        if (amount > 0 && Object.hasOwn(content.items,itemId)) encounterItem(state,itemId);
+  });
   // Read compatibility projection. Production mutations use store or explicit root operations.
   // Never retain either context across a state commit.
   const actionState = { ...state, ...store, locationId: id, localFlags: local.flags, permissions: access,
@@ -256,9 +293,10 @@ export function areaOf(state, world, id) {
 export function isKnown(state, world, content, id) {
   const def = locationDefinition(state, world, id);
   if (!def || state.entities && !isEntityActive(state, id)) return false;
+  if(def.kind==='area'&&state.mapKnowledge&&areaKnowledge(state,id)!=='KNOWN')return false;
   const ctx = getLocationContext(state, content, world, id);
   if (conditionReason(ctx.actionState, def.conditions, content)) return false;
-  return def.kind === "area" || isKnown(state, world, content, ctx.local.areaId);
+  return def.kind === "area" ? !state.mapKnowledge || areaKnowledge(state,id)==='KNOWN' : isKnown(state, world, content, ctx.local.areaId);
 }
 
 export function travelReason(state, targetId, world, content) {
@@ -345,17 +383,96 @@ export function validateActionScopes(actions, world) {
   }
 }
 
-export function graphView(state, world, content, areaId = null) {
-  const nodes = locationInstances(state, world).filter(def => isKnown(state, world, content, def.id) &&
+export function graphView(state, world, content, areaId = null, { revealAll = false } = {}) {
+  const origin=locationDefinition(state,world,areaOf(state,world,state.locationId))?.position;
+  const remembered=new Set(Object.keys(state.vesselReports?.byVessel ?? {}));
+  const drones=new Set([...remembered,...locationInstances(state,world).filter(d=>d.controlMode==='commanded').map(d=>d.id)]);
+  const nodes = locationInstances(state, world).filter(def => !drones.has(def.id) && (revealAll || isKnown(state, world, content, def.id)) &&
     (areaId ? def.kind === "site" && state.locations[def.id].areaId === areaId : def.kind === "area"))
     .map(def => ({ id: def.id, name: def.name, description: def.remoteDescription, kind: def.kind, position: def.position,
+      ...(origin && def.position?{distance:distance(origin,def.position)}:{}),
       owned: ownerOf(state, def.id) === "player", ownerId: ownerOf(state, def.id), current: def.id === state.locationId,
       containsPlayer: def.kind === "area" && areaOf(state, world, state.locationId) === def.id,
+      ...(revealAll && !isKnown(state, world, content, def.id) ? { debugVisible: true } : {}),
       reason: travelReason(state, def.id, world, content) }));
+  if(areaId && world.observableVesselStatus)for(const id of drones) {
+    const visible=world.observableVesselStatus(state,id);if(visible.areaId!==areaId)continue;
+    nodes.push({id,name:visible.name,kind:'site',drone:true,mobile:true,owned:true,ownerId:'player',current:false,observable:visible,
+      description:`${visible.classification.replaceAll('_',' ')}${visible.observedAt!==null?` · observed at ${Math.floor(visible.observedAt)}s`:''}`,reason:''});
+  }
   const ids = new Set(nodes.map(n => n.id));
-  const links = areaId ? nodes.filter(n => locationDefinition(state, world, n.id)?.mobile && ids.has(state.locations[n.id].dockedAtId))
-    .map(n => [n.id, state.locations[n.id].dockedAtId]) : world.links.filter(([a, b]) => ids.has(a) && ids.has(b));
-  return { nodes, links };
+  const dockFor=n=>n.drone?n.observable.dockedAtId:state.locations[n.id]?.dockedAtId;
+  const links = areaId ? nodes.filter(n => (n.mobile || locationDefinition(state, world, n.id)?.mobile) && ids.has(dockFor(n)))
+    .map(n => [n.id, dockFor(n)]) : physicalLinks(state,world).filter(([a, b]) => ids.has(a) && ids.has(b));
+  if(!areaId && !revealAll)nodes.push(...detectedContacts(state));
+  return { nodes, links, ...(!areaId&&state.worldGeography?{space:state.worldGeography.space}:{}) };
+}
+
+// Locations owns the composed definition boundary. Entities only delegates this
+// read; provenance is irrelevant to consumers after installation.
+export function resolveLocationDefinition(state,world,locationId) {
+  const ref=getEntity(state,locationId)?.definition;
+  const id=ref?.id??locationId;
+  const saved=state.worldGeography?.generatedLocationFactsById;
+  const def=(saved && Object.hasOwn(saved,id)?saved[id]:undefined) ?? (Object.hasOwn(world.definitions,id)?world.definitions[id]:undefined);
+  const anchor=state.worldGeography?.areas[locationId];
+  return def && anchor ? {...def,position:[...anchor.position],primaryLocalId:anchor.primaryLocalId} : def;
+}
+export const physicalLinks=(state,world)=>state.worldGeography?.physicalEdges??world.links;
+export function freezeAuthoredGeography(state,world,seed=null,extent) {
+  const defs=locationInstances(state,world,['active','inactive']).filter(d=>d.kind==='area');
+  // Custom test/authoring worlds can exceed production bounds. Freeze their own
+  // bounded extent instead of moving existing coordinates during migration.
+  const space=extent??{min:[0,1].map(i=>Math.min(-320,...defs.map(d=>Math.floor(d.position[i]/10)*10))),max:[0,1].map(i=>Math.max(320,...defs.map(d=>Math.floor(d.position[i]/10)*10+10))),cellSize:10};
+  return {schemaVersion:1,seed,generatorRevision:null,connectionDistance:world.connectionDistance??120,space:structuredClone(space),areas:Object.fromEntries(defs.sort((a,b)=>compareKeys(a.id,b.id)).map(d=>[d.id,{position:[...d.position],cell:cellAt(space,d.position),primaryLocalId:d.primaryLocalId??null}])),generatedLocationFactsById:{},physicalEdges:world.links.map(e=>[...e].sort(compareKeys)).sort((a,b)=>compareKeys(a.join('/'),b.join('/')))};
+}
+export function reconcileAuthoredMapKnowledge(state,world,content,initial=false) {
+  let changed=false;
+  for(const def of locationInstances(state,world).filter(d=>d.kind==='area' && world.definitions[d.definitionId??d.id])) {
+    const configured=world.definitions[def.definitionId??def.id],explicit=configured.initialMapKnowledge;
+    const ready=!conditionReason(getLocationContext(state,content,world,def.id).actionState,configured.conditions,content);
+    const legacyReveal=explicit===undefined&&ready;
+    if(initial&&explicit==='DETECTED')changed=admitDetectedArea(state,def.id,def.position,'Authored starting chart')||changed;
+    else if(initial&&explicit==='KNOWN'||legacyReveal)changed=admitKnownArea(state,def.id)||changed;
+  }
+  // Occupancy is observation, including legacy saves at otherwise hidden Areas.
+  const occupied=areaOf(state,world,state.locationId);
+  if(occupied)changed=admitKnownArea(state,occupied)||changed;
+  return changed;
+}
+export function validateWorldGeography(state,content,world) {
+  const g=state.worldGeography,fail=detail=>{throw new Error(`Invalid physical geography: ${detail}.`);};
+  if(!record(g)||g.schemaVersion!==1||!record(g.areas)||!record(g.generatedLocationFactsById)||!Array.isArray(g.physicalEdges)||!(g.seed===null||Number.isSafeInteger(g.seed)&&g.seed>=0&&g.seed<=0xffffffff)||!(g.generatorRevision===null||typeof g.generatorRevision==='string'&&g.generatorRevision.trim()))fail('header');
+  if(Object.keys(g).some(k=>!['schemaVersion','seed','generatorRevision','acceptedAttempt','connectionDistance','space','areas','generatedLocationFactsById','physicalEdges'].includes(k))||!Number.isFinite(g.connectionDistance)||g.connectionDistance<=0)fail('unexpected fields/range');
+  validateSpace(g.space);
+  if(g.acceptedAttempt!==undefined&&(!Number.isSafeInteger(g.acceptedAttempt)||g.acceptedAttempt<0||g.acceptedAttempt>=8))fail('attempt');
+  const cells=new Set();
+  for(const [id,a] of Object.entries(g.areas)) {
+    if(getEntity(state,id)?.type!=='area'||!record(a)||!containsPosition(g.space,a.position)||!Array.isArray(a.cell)||JSON.stringify(a.cell)!==JSON.stringify(cellAt(g.space,a.position))||Object.keys(a).some(k=>!['position','cell','primaryLocalId','placementKey'].includes(k)))fail(`anchor ${id}`);
+    if(a.primaryLocalId!==null&&(getEntity(state,a.primaryLocalId)?.type!=='site'||state.locations[a.primaryLocalId]?.areaId!==id))fail(`primary Local ${id}`);
+    const key=a.cell.join('/');if(cells.has(key))fail('overlapping cells');cells.add(key);
+  }
+  for(const e of Object.values(state.entities))if(e.type==='area'&&!isTerminal(e)&&!g.areas[e.id])fail(`missing anchor ${e.id}`);
+  for(const [id,def] of Object.entries(g.generatedLocationFactsById)) {
+    const e=getEntity(state,id);
+    if(!validEntityId(id)||!record(def)||def.id!==id||e?.definition?.id!==id||e?.definition?.catalog!=='locations'||e.type!==def.kind||world.definitions[id]||!['area','site'].includes(def.kind)||def.mobile||typeof def.name!=='string'||!def.name.trim()||!record(def.resourceNodes)||!Array.isArray(def.actions)||!Array.isArray(def.sceneObjects)||!record(def.initialInfrastructure)||!record(def.initialResources)||!record(def.capacities))fail(`definition ${id}`);
+    if(def.kind==='site'&&(!g.areas[def.areaId]||def.nodeStatePolicy!=='frozenRuntime'))fail(`site ${id}`);
+    if(def.bodyCharacter && (!record(def.bodyCharacter)||!['small','ordinary','large','massive'].includes(def.bodyCharacter.scale)||typeof def.bodyCharacter.dominant!=='string'||!record(def.bodyCharacter.materials)||Object.values(def.bodyCharacter.materials).some(n=>!Number.isSafeInteger(n)||n<0||n>10000)))fail(`physical character ${id}`);
+    if(def.kind==='area'&&JSON.stringify(def.position)!==JSON.stringify(g.areas[id].position))fail(`position ${id}`);
+    const resources=new Set();
+    for(const [nodeId,n] of Object.entries(def.resourceNodes)) {
+      if(!validEntityId(nodeId)||n.id!==nodeId||content.items[n.resourceId]?.category!=='resource'||resources.has(n.resourceId)||!Number.isSafeInteger(n.initialReserve)||n.initialReserve<=0||volumeUnits(n.initialReserveM3)!==n.initialReserve||!Array.isArray(n.tags)||!n.tags.every(validEntityId))fail(`deposit ${id}/${nodeId}`);
+      resources.add(n.resourceId);
+    }
+  }
+  const edgeSet=new Set();
+  for(const e of g.physicalEdges){if(!Array.isArray(e)||e.length!==2||e[0]===e[1]||!e.every(id=>g.areas[id])||distance(g.areas[e[0]].position,g.areas[e[1]].position)>g.connectionDistance||edgeSet.has([...e].sort(compareKeys).join('/')))fail('edge');edgeSet.add([...e].sort(compareKeys).join('/'));}
+  if(g.generatorRevision!==null) {
+    const reached=new Set([Object.keys(g.areas)[0]]);let changed=true;
+    while(changed){changed=false;for(const [a,b] of g.physicalEdges)if(reached.has(a)!==reached.has(b)){reached.add(a);reached.add(b);changed=true;}}
+    if(reached.size!==Object.keys(g.areas).length)fail('disconnected physical map');
+  }
+  // No generator dependency: frozen facts remain valid under newer profiles.
 }
 
 // The UI and transfer mechanics share the same endpoint policy.

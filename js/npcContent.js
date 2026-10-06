@@ -5,7 +5,7 @@ export const npcDefinitions = {
     description: "An engineer in a patched maintenance suit. Her attention keeps returning to the habitat's power readouts.",
     narrative:{tone:'practical',greeting:'Hello.',observationInterests:['equipment_condition','industrial_activity','power']},
     initialLocationId: "supplyPlatform", initialInventory: { scrap: 0.04 }, inventoryCapacities: { scrap: 0.2 },
-    initialFlags: {}, interactions: ["inspect", "talk"], dialogueGroups: ["habitatCrew", "miraPersonal"]
+    initialFlags: {}, interactions: ["inspect", "talk"], remoteContact:{enabled:true}, dialogueGroups: ["habitatCrew", "miraPersonal"]
   },
   oren: {
     name: "Oren", subtitle: "Maintenance coordinator", order: 20,

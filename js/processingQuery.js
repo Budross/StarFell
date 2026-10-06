@@ -1,6 +1,42 @@
+import { definitionHasCapability } from './equipmentCatalog.js';
 import { powerRate } from './game.js';
 import { capacity, previewExchange } from './resources.js';
-import { processingRuns, workingBlocker, amountMap } from './processing.js';
+import { processingRuns, workingBlocker, amountMap,previewStartProcess,positiveInitialWork } from './processing.js';
+import { locationDefinition } from './entityQueries.js';
+
+export function processingStartReadiness(state,request,services,actorId='player') {
+  const preview=previewStartProcess(state,request,services,actorId);
+  if(preview.ok||preview.code!=='POWER')return {...preview,canWaitForPower:false};
+  const host=calculateProcessingReadiness(state,services).hosts.find(h=>h.hostId===request.hostId);
+  return {...preview,canWaitForPower:!!host&&host.generation>0&&host.capacity>host.power&&positiveInitialWork(preview.workTotal,preview.powerRate,host.capacity)};
+}
+export function processingWorkFailure(state,runId,services) {
+  const plan=calculateProcessingReadiness(state,services),entry=plan.runs.find(r=>r.runId===runId);
+  if(!entry||!entry.blocker)return null;
+  if(entry.blocker!=='NO_POWER')return entry.blocker;
+  const host=plan.hosts.find(h=>h.hostId===entry.hostId);
+  return host.generation<=0&&host.power<=0?'Extraction cannot recharge.':null;
+}
+
+export function extractionCandidates(definition, services) {
+  if (!definition || definition.kind !== 'site' || definition.mobile) return [];
+  return Object.entries(definition.resourceNodes ?? {}).flatMap(([nodeId,node]) =>
+    Object.values(services.catalog.definitions).filter(p => p.kind === 'extraction' && p.hostKinds.includes('ship') && p.sourceRequirements.tags.every(t => node.tags.includes(t)))
+      .map(p => ({ destinationId: definition.id, nodeId, resourceId: node.resourceId, resourceName: services.content.items[node.resourceId].name,
+        processId: p.id, processName: p.name, batchAmount: p.batchAmount,
+        equipmentIds: Object.entries(services.content.infrastructure).filter(([id]) => definitionHasCapability(services.content,id,p.capability)).map(([id]) => id),
+        equipmentNames: Object.fromEntries(Object.entries(services.content.infrastructure).filter(([id]) => definitionHasCapability(services.content,id,p.capability)).map(([id,e]) => [id,e.name])) })));
+}
+export function runtimeExtractionCandidates(state, locationId, services) {
+  if (state.entities[locationId]?.lifecycle !== 'active') return [];
+  return extractionCandidates(locationDefinition(state,services.world,locationId),services)
+    .filter(c => state.locations[locationId]?.resourceNodes?.[c.nodeId]?.resourceId === c.resourceId)
+    .map(c => ({ ...c, destinationId: locationId }));
+}
+export function bufferedOutputObservation(state,hostId,itemId) {
+  const runs=processingRuns(state).filter(r=>r.hostId===hostId&&r.phase==='delivery'&&r.pendingOutputs.some(l=>l.itemId===itemId));
+  return {amount:runs.reduce((n,r)=>n+r.pendingOutputs.filter(l=>l.itemId===itemId).reduce((sum,l)=>sum+l.amount,0),0),runIds:runs.map(r=>r.id)};
+}
 
 // The single instantaneous allocation calculation. Both simulation and read
 // projections consume this result. No delivery, work, blockers or RNG mutate.

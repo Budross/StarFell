@@ -8,7 +8,7 @@ export const dialogueDefinitions = {
     orenPersonal: { conversations: ["orenRequest", "orenFollowup", "orenThanks"] }
   },
   conversations: {
-    miraBenchAdvice: { role: "topic", topicId: "benchAdvice", label: "Advice for the workbench", order: 12, repeat: "once", entryNode: "advice", nodes: {
+    miraBenchAdvice: { role: "topic", topicId: "benchAdvice", label: "Advice for the workbench", contactModes:['physical','radio'], order: 12, repeat: "once", entryNode: "advice", nodes: {
       advice: { text: "Start with clean contacts. Loose connections can make a good circuit look broken. The solar cells work much the same way: thin silicon layers, with a contact to collect the response to light.", choices: [
         { id: "note", text: "I'll keep that in mind during my experiments.", effects: [setSpeakerFlag("benchAdvice")], destinationNode: "noted" }
       ] },

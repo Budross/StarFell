@@ -23,6 +23,7 @@ export function fact(providerId,kind,subject,data,scope,{basis='current',event=n
 }
 export function validateFacts(facts) {
   const fields={
+    equipment_provision:['equipmentId','name','provision'],equipment_physical_form:['equipmentId','name','form','features'],known_design_family:['name','family'],known_design_lineage:['name','sources'],known_vessel_design:['name','family','revision'],
     location_identity:['name','baseText','dimensions'],equipment_condition:['equipmentId','name','conditionBand','quantity','health','enabled','operational'],
     power_reserve:['available','capacity','reserveBand','equipmentNetRate','flowBand'],process_activity:['runId','processId','processName','equipmentId','equipmentName','phase','blocker','workState','pendingOutputs'],
     equipment_activity:['equipmentId','name','activity','quantity','attachedRuns','workingCount','powerLimitedCount','deliveryCount','freeSlots'],

@@ -6,6 +6,7 @@ import { describeAmounts, transfer, transferReason, previewExchange } from "./re
 import { installEquipment, repairEquipment, upgradeEquipment, validateEquipment } from "./equipment.js";
 import { setScopedFlag } from "./flags.js";
 import { applyEffects } from "./effects.js";
+import { installItem } from './itemInstallation.js';
 
 const storeFor = (state, context) => context?.store ?? state;
 const viewFor = (state, context) => context?.actionState ?? state;
@@ -22,7 +23,7 @@ export function previewInstallation(store, item, content) {
 }
 
 // Return ordinary registry definitions; no second execution or persistence path.
-export function createItemActions(content, effectServices, ledgerServices) {
+export function createItemActions(content, effectServices, ledgerServices, world) {
   const actions = [];
   const allowed = (state, conditions) => !conditionReason(state, conditions, content);
   const add = action => actions.push({ access: "managed", ...action });
@@ -44,6 +45,10 @@ export function createItemActions(content, effectServices, ledgerServices) {
           state.infrastructure[installation.group].quantity < (installation.limit ?? Infinity),
         requirement: state => previewInstallation(state, item, content).reason,
         execute(state, context) {
+          if (world) {
+            installItem(state,{ itemId:item.id,sourceLocationId:state.locationId,targetLocationId:state.locationId },{ content,world });
+            return `Installed ${item.name.toLowerCase()}.`;
+          }
           if (context?.local?.assembly) throw new Error('Vessel equipment must be installed through its module composition.');
           const store = storeFor(state, context);
           const preview = previewInstallation(store, item, content);

@@ -2,6 +2,11 @@ import { capacityWithEquipment } from "./equipment.js";
 import { assessStorageChange, storageSummary } from "./storage.js";
 import { quantityKind, validateQuantity, checkedAdd, formatQuantity, record } from "./quantities.js";
 
+// Optional observers are bound by context composition, not saved on cloneable stores.
+const receiptObservers = new WeakMap();
+export function observeItemReceipts(resources, observer) { receiptObservers.set(resources,observer); }
+export function notifyItemReceipt(store, rewards) { receiptObservers.get(store.resources)?.(rewards); }
+
 export function quantity(store, id, content) {
   quantityKind(id, content);
   return validateQuantity(store.resources[id] ?? 0, id, content);
@@ -40,6 +45,7 @@ export function transfer(store, cost, rewards, content) {
   const preview = previewExchange(store, cost, rewards, content);
   if (!preview.ok) throw new Error(preview.reason);
   Object.assign(store.resources, preview.resources);
+  notifyItemReceipt(store,rewards);
 }
 export const canPay = (store, cost, content) => previewExchange(store, cost, {}, content).ok;
 export const pay = (store, cost, content) => transfer(store, cost, {}, content);
@@ -50,6 +56,7 @@ export function grantItemsChecked(store, rewards, content) {
   const preview = previewExchange(store, {}, rewards, content);
   if (!preview.ok) throw new Error(preview.reason);
   Object.assign(store.resources, preview.resources);
+  notifyItemReceipt(store,rewards);
 }
 export function receiveUtilityClamped(store, rewards, content) {
   if (!record(rewards)) throw new Error("Invalid utility rewards.");
@@ -66,7 +73,7 @@ export function receiveUtilityClamped(store, rewards, content) {
 }
 // Compatibility name deliberately rejects physical rewards instead of clipping them.
 export const receive = receiveUtilityClamped;
-function previewMove(source, destination, id, amount, content) {
+export function previewMove(source, destination, id, amount, content) {
   if (source === destination || source.resources === destination.resources) throw new Error("Choose two different stores.");
   validateQuantity(amount, id, content);
   if (amount <= 0) throw new Error("Enter a positive amount.");
@@ -85,4 +92,5 @@ export function moveExact(source, destination, id, amount, content) {
   const { debit, credit } = previewMove(source, destination, id, amount, content);
   Object.assign(source.resources, debit.resources);
   Object.assign(destination.resources, credit.resources);
+  notifyItemReceipt(destination,{ [id]:amount });
 }

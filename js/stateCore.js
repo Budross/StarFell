@@ -1,12 +1,15 @@
 import { migrateState as migrateV7 } from './stateV7.js';
-import { createDialogueState, collectDialogueReferences } from './dialogue.js';
+import { createDialogueState, collectDialogueReferences, validateDialogueState } from './dialogue.js';
 import { createResearchState } from './research/researchState.js';
 import { seedEntities, validateSpawnIds, initialLocationState, initialNpcState } from './entityCreation.js';
 import { makeEntity, getEntity, isPrincipal, record, validEntityId, entitySequence } from './entities.js';
 import { createStateLifecycle } from './stateComposition.js';
 import { migrateConsolidatedAreas } from './locationAreaMigration.js';
+import {installFreshWorld} from './proceduralWorld.js';
+import {freezeAuthoredGeography,reconcileAuthoredMapKnowledge} from './locations.js';
+import {emptyMapKnowledge,admitKnownArea} from './mapKnowledge.js';
 
-export const SAVE_VERSION = 9;
+export const SAVE_VERSION = 13;
 
 export function createInitialState(content, world, people, research, seed = 0x07B3A91D, lifecycle) {
   validateSpawnIds(world, people, world.principals ?? {});
@@ -15,6 +18,8 @@ export function createInitialState(content, world, people, research, seed = 0x07
     npcs: Object.fromEntries(people.initialSpawns.map(spawn => [spawn.id, initialNpcState(spawn, people)])),
     dialogue: createDialogueState(), crafting: { recipeId: null, ingredients: {} }, knowledge: { discoveries: {} }, flags: {}, research: createResearchState(seed) };
   seedEntities(state, world, people, world.principals);
+  installFreshWorld(state,content,world,seed);
+  reconcileAuthoredMapKnowledge(state,world,content,true);
   state.saveVersion = SAVE_VERSION;
   const currentLifecycle = lifecycle ?? createStateLifecycle({ content, world, people, research });
   currentLifecycle.initialize(state);
@@ -60,7 +65,7 @@ export function migrateState(saved, content, world, people, notices = [], resear
   if (!record(saved) || !Number.isInteger(saved.saveVersion) || saved.saveVersion < 1 || saved.saveVersion > SAVE_VERSION) throw new Error('Unsupported or missing save data.');
   validateSpawnIds(world, people, world.principals ?? {});
   const relocated = structuredClone(saved);
-  migrateConsolidatedAreas(relocated, world, notices);
+  if(saved.saveVersion<13)migrateConsolidatedAreas(relocated, world, notices);
   let state;
   if (saved.saveVersion < 8) {
     const legacy = relocated; delete legacy.entities; delete legacy.entityIds;
@@ -71,12 +76,35 @@ export function migrateState(saved, content, world, people, notices = [], resear
   }
   if (saved.saveVersion < 9) { state.processing = { nextRunId: 1, runs: {} }; state.saveVersion = 9; }
   const currentLifecycle = lifecycle ?? createStateLifecycle({ content, world, people, research });
-  currentLifecycle.reconcile(state, { notices, reconcileCurrentInstances: saved.saveVersion >= 8 });
+  if (saved.saveVersion < 10) {
+    if (Object.hasOwn(state.knowledge,'itemEntries')) throw new Error('Unexpected item journal in a pre-version-10 save.');
+    state.saveVersion = 10;
+    notices.push('Item entries now retain learned information. Existing discoveries and observable items were preserved; earlier unrecorded encounters cannot be reconstructed.');
+  }
+  if(saved.saveVersion<11)state.saveVersion=11;
+  if(saved.saveVersion<12){
+    // Validate the genuine physical-only schema before assigning contact meaning.
+    validateDialogueState(state,people,true);
+    if(state.dialogue.active)Object.assign(state.dialogue.active,{mode:'physical',receiverLocationId:state.dialogue.active.locationId});
+    state.saveVersion=12;
+    notices.push('Radio conversations now retain their contact mode and endpoint. Physical introductions and dialogue progress were preserved.');
+  }
+  if(saved.saveVersion<13) {
+    if(Object.hasOwn(state,'worldGeography')||Object.hasOwn(state,'mapKnowledge'))throw new Error('Unexpected spatial state in a legacy save.');
+    state.worldGeography=freezeAuthoredGeography(state,world);
+    state.mapKnowledge=emptyMapKnowledge();
+    reconcileAuthoredMapKnowledge(state,world,content,true);
+    for(const host of Object.values(state.locations))if(host.journey?.targetId && state.entities[host.journey.targetId]?.type==='area')admitKnownArea(state,host.journey.targetId);
+    state.saveVersion=13;
+    notices.push('Existing authored geography and navigation knowledge were preserved. Procedural bodies are created only for new games.');
+  }
+  currentLifecycle.reconcile(state, { notices, reconcileCurrentInstances: saved.saveVersion >= 8, migrateItemKnowledge:saved.saveVersion < 10, migrateMissionResults:saved.saveVersion<11 });
   validateState(state, content, world, people, research, undefined, currentLifecycle);
   return state;
 }
 export function validateState(state, content, world, people, research, collectors, lifecycle) {
   if (!record(state) || state.saveVersion !== SAVE_VERSION) throw new Error('Unsupported or missing save data.');
+  if(!lifecycle && (Object.keys(state.missions?.instances ?? {}).length || Object.keys(state.vesselReports?.byVessel ?? {}).length)) throw new Error('Mission saves require the composed state lifecycle.');
   if (!Number.isFinite(state.simulationTime) || state.simulationTime < 0) throw new Error('Invalid simulation time.');
   (lifecycle ?? createStateLifecycle({ content, world, people, research, referenceCollectors: collectors })).validate(state);
 }

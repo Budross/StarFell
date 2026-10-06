@@ -6,7 +6,7 @@ import { dialogueView } from "./dialogue.js";
 export default function dialogueDisplay(system, onAction, openTab) {
   const panel = document.querySelector("#people-panel");
   panel.innerHTML = `<div class="people-heading"><span id="people-location"></span><button id="people-resume" hidden type="button"></button></div>
-    <div class="people-layout"><section class="people-roster" aria-label="People here"><h2>People here</h2><div id="people-list"></div></section>
+    <div class="people-layout"><section class="people-roster" aria-label="People and radio contacts"><h2>People and radio contacts</h2><div id="people-list"></div></section>
     <section id="people-detail" class="people-detail" aria-label="Person and conversation"></section></div>
     <p id="people-error" class="people-error" role="alert"></p>`;
   const roster = panel.querySelector("#people-list"), detail = panel.querySelector("#people-detail");
@@ -39,21 +39,23 @@ export default function dialogueDisplay(system, onAction, openTab) {
     const a = state.dialogue.active, view = dialogueView(state, system);
     if (lastLocation !== state.locationId) { selected = a?.npcId ?? null; lastLocation = state.locationId; receipt = ""; detailSignature = ""; }
     const local = npcInstances(state, system).filter(npc => npcVisible(state, npc.id, system)).sort((a, b) => a.order - b.order || a.id.localeCompare(b.id));
+    const remote=system.communications?.contacts(state)??[];
     panel.querySelector("#people-location").textContent = `LOCAL PEOPLE / ${locationDefinition(state, system.world, state.locationId).name}`;
-    const shortcutText = `People here · ${local.length}`;
+    const shortcutText = `People here · ${local.length}${remote.length?` · Radio contacts · ${remote.length}`:''}`;
     if (shortcut.textContent !== shortcutText) shortcut.textContent = shortcutText;
     const resumeText = a ? `Resume conversation with ${npcDefinition(state, system, a.npcId).name}` : "";
     for (const el of [resume, shellResume]) { el.hidden = !a; if (el.textContent !== resumeText) el.textContent = resumeText; }
     document.querySelector("#terminal-tab-people").classList.toggle("has-conversation", !!a);
     document.querySelector("#terminal-tab-people").setAttribute("aria-label", a ? "People, conversation in progress" : "People");
-    if (selected && !local.some(n => n.id === selected) && !receipt) selected = null;
+    if (selected && !local.some(n => n.id === selected) && !remote.some(n=>n.npcId===selected) && !receipt) selected = null;
     resume.hidden = !a || selected === a.npcId;
     if (view && sessionId !== view.sessionId) { transcript = []; seen = new Set(); sessionId = view.sessionId; }
     if (view && view.phase !== "topics") {
       const key = `${view.sessionId}/${view.revision}`;
       if (!seen.has(key)) { transcript.push({ author: view.name, text: view.text }); seen.add(key); }
     }
-    const rows = local.map(n => ({ id: n.id, name: n.name, subtitle: n.subtitle ?? "", reason: contactReason(state, n.id, system) }));
+    const rows = [...local.map(n => ({ id: n.id, name: n.name, subtitle: n.subtitle ?? "",mode:'physical', reason: contactReason(state, n.id, system) })),
+      ...remote.map(n=>({id:n.npcId,name:n.name,subtitle:'Radio contact',mode:'radio',reason:''}))];
     const rs = JSON.stringify([rows, selected]);
     if (rs !== rosterSignature) {
       const focusedKey = roster.contains(document.activeElement) ? document.activeElement.dataset.key : null;
@@ -70,15 +72,17 @@ export default function dialogueDisplay(system, onAction, openTab) {
     }
     panel.classList.toggle("has-person", !!selected || !!receipt);
     const npc = selected ? npcDefinition(state, system, selected) : null;
+    const mode=rows.find(row=>row.id===selected)?.mode??'physical';
+    const contact= id=>mode==='radio'?system.communications.contactReason(state,id):contactReason(state,id,system);
     const activeView = view?.npcId === selected ? view : null;
-    const ds = JSON.stringify([selected, receipt, activeView, npc ? contactReason(state, npc.id, system) : "", a?.npcId, transcript]);
+    const ds = JSON.stringify([selected, mode, receipt, activeView, npc ? contact(npc.id) : "", a?.npcId, transcript]);
     if (ds === detailSignature && !focusNext) return;
     const scrollHost = getComputedStyle(detail).overflowY === "auto" ? detail : panel.querySelector(".people-layout");
     const previousScroll = scrollHost.scrollTop, atBottom = scrollHost.scrollHeight - scrollHost.clientHeight - scrollHost.scrollTop < 60;
     const focusedKey = detail.contains(document.activeElement) ? document.activeElement.dataset.key : null;
     detailSignature = ds; detail.replaceChildren();
     const header = element("div", undefined, "conversation-header");
-    const heading = element("h2", npc?.name ?? (receipt ? "Conversation ended" : "Choose someone to talk to")); heading.tabIndex = -1;
+    const heading = element("h2", (npc?.name ?? (receipt ? "Conversation ended" : "Choose someone to talk to"))+((activeView?.mode??mode)==='radio'?' · Radio':'')); heading.tabIndex = -1;
     let passageFocus = heading;
     header.append(heading); detail.append(header);
     if (selected || receipt) header.append(button("Back to people", "back", () => { selected = null; receipt = ""; focusNext = true; render(state); }));
@@ -111,7 +115,7 @@ export default function dialogueDisplay(system, onAction, openTab) {
       detail.append(element("p", npc.subtitle ?? "", "people-muted"), element("p", npc.description, "person-description"));
       if (a) detail.append(button(`Resume conversation with ${npcDefinition(state, system, a.npcId).name}`, "resume", () => browse(a.npcId)), element("p", "End your current conversation before starting another.", "people-muted"));
       else if (npc.interactions.includes("talk")) {
-        const why = contactReason(state, npc.id, system), b = button("Talk", "talk", () => act("start", { npcId: npc.id }), why);
+        const why = contact(npc.id), b = button(mode==='radio'?'Call by radio':"Talk", "talk", () => act("start", { npcId: npc.id,mode }), why);
         detail.append(b);
         if (why) { const p = element("p", why, "dialogue-reason"); p.id = "talk-reason"; b.setAttribute("aria-describedby", p.id); detail.append(p); }
       }
@@ -135,7 +139,7 @@ export default function dialogueDisplay(system, onAction, openTab) {
         if (choice) transcript.push({ author: "You", text: choice.text });
       }
     }
-    if (before.dialogue.active && !after.dialogue.active) { receipt = message || "Local contact was lost. The conversation has ended."; focusNext = true; }
+    if (before.dialogue.active && !after.dialogue.active) { receipt = message || "Contact was lost. The conversation has ended."; focusNext = true; }
   };
   render.show = show;
   return render;

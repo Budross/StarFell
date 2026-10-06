@@ -16,7 +16,12 @@ export function beatCandidates(context) {
   };
   for (const f of facts) {
     const d=f.data,name=d.name ?? d.equipmentName;
-    if (f.kind==='equipment_condition') {
+    if(f.kind==='equipment_provision' && inspected && !automatic)add('equipment_provision',[f],'support',['equipment_condition'],{name,provision:d.provision});
+    if (f.kind==='equipment_physical_form' && !automatic) add(d.features?'physical_form':'physical_shape',[f],'presence',['equipment_condition'],{name,form:d.form,...(d.features?{features:d.features}:{})});
+    else if (f.kind==='known_design_family' && !automatic) add('design_family',[f],'support',['equipment_condition'],{name,family:d.family});
+    else if (f.kind==='known_design_lineage' && !automatic) add('design_lineage',[f],'support',['equipment_condition'],{name,sources:d.sources});
+    else if (f.kind==='known_vessel_design' && !automatic) add('vessel_design',[f],'support',['vessel_geometry'],{name,family:d.family,revision:d.revision});
+    else if (f.kind==='equipment_condition') {
       if (inspected===d.equipmentId && d.health!==undefined) add('diagnostic',[f],'condition',['equipment_condition'],{name,health:Math.round(d.health*100),quantity:d.quantity},{topicKeys:[`equipment:${context.locationId}:${d.equipmentId}:condition`]});
       else if (d.conditionBand!=='sound' && d.conditionBand!=='worn') add('condition',[f],'condition',['equipment_condition'],{name,conditionBand:d.conditionBand});
       if (d.enabled===false) add('disabled',[f],'problem',['equipment_condition'],{name});

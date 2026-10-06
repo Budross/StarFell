@@ -73,6 +73,14 @@ function processEvent(importance, fields, started = false) {
 // These descriptors interpret saved facts, never current cargo/placement/health.
 // Only append checks receive current-content capabilities; history needs none.
 export const worldLedgerTypes = Object.freeze({
+  DESIGN_STUDIED: descriptor(0.5,['studyId','revision','discoveryId'],[],e=>{
+    ledgerCheck(ledgerContentId(e.data.studyId)&&positiveInteger(e.data.revision)&&ledgerContentId(e.data.discoveryId),'study identity');
+  },undefined,{actorId:required('principal'),targetId:required('historyLocation'),locationId:required('historyLocation')},['isCurrentDiscoveryId'],(e,c)=>ledgerCheck(c.isCurrentDiscoveryId(e.data.discoveryId),'study discovery')),
+  MISSION_TRANSITION: descriptor(0.4,['missionId','event','phase','outcome','reason'],[], e=>{
+    ledgerCheck(/^mission[1-9]\d*$/.test(e.data.missionId) && ['ASSIGNED','UPDATED','RECALLED','BLOCKED','STRANDED','RETURNED'].includes(e.data.event), 'mission identity/event');
+    ledgerCheck(['ACTIVE','RETURNING','COMPLETED','STRANDED'].includes(e.data.phase) && ['PENDING','SUCCEEDED','PARTIAL','FAILED','RECALLED'].includes(e.data.outcome), 'mission phase/outcome');
+    ledgerCheck(e.data.reason===null || typeof e.data.reason==='string' && e.data.reason.length<=256, 'mission reason');
+  },undefined,{actorId:required('principal'),targetId:required('historyLocation',['ship']),locationId:required('historyLocation',['site'])}),
   VESSEL_ASSEMBLED: descriptor(0.6, [], [], () => {}, undefined,
     { actorId: required('principal'), targetId: required('historyLocation', ['ship']), locationId: required('historyLocation', ['site']), areaId: required('historyArea') }),
   PROCESS_STARTED: processEvent(0.2,['inputs'],true),

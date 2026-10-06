@@ -69,6 +69,7 @@ export function createActionRegistry() {
       name: action.name,
       description: action.description ?? "",
       group: action.group ?? "directives",
+      collection: action.collection,
       shortcut: action.shortcut,
       gathering: action.gathering,
       visible,

@@ -1,4 +1,6 @@
 import { checkedAdd, checkedMultiply } from "./quantities.js";
+import { groupOperational, storeHasCapability } from './equipmentQuery.js';
+export { propulsionOutput } from './shipEquipment.js';
 // Equipment owns installed-group state. Passive storage and operating output
 // deliberately use different rules.
 export function equipmentUpgrades(definition, content) {
@@ -6,13 +8,11 @@ export function equipmentUpgrades(definition, content) {
 }
 
 export function isOperational(infrastructure, id) {
-  const machine = infrastructure?.[id];
-  return machine?.quantity > 0 && machine.enabled && machine.health > 0;
+  return groupOperational(infrastructure, id);
 }
 
 export function hasCapability(infrastructure, capability, content) {
-  return Object.entries(content.infrastructure).some(([id, def]) =>
-    isOperational(infrastructure, id) && def.capabilities.includes(capability));
+  return storeHasCapability(infrastructure, capability, content);
 }
 
 export function powerOutput(infrastructure, content) {
@@ -23,17 +23,6 @@ export function powerOutput(infrastructure, content) {
       .filter(upgrade => machine.upgrades.includes(upgrade.id))
       .reduce((sum, upgrade) => sum + upgrade.powerBonus, 0);
     return total + (definition.powerPerSecond + bonus) * machine.quantity * machine.health;
-  }, 0);
-}
-
-export function propulsionOutput(infrastructure, capability, content) {
-  return Object.entries(content.infrastructure).reduce((sum, [id, machine]) => {
-    const value = infrastructure[id];
-    if (!value.enabled || !machine.capabilities.includes(capability)) return sum;
-    const bonus = equipmentUpgrades(machine, content)
-      .filter(upgrade => value.upgrades.includes(upgrade.id))
-      .reduce((total, upgrade) => total + upgrade.travelSpeedBonus, 0);
-    return sum + (machine.travelSpeed + bonus) * value.quantity * value.health;
   }, 0);
 }
 
