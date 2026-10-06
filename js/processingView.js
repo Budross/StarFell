@@ -9,18 +9,18 @@ export const blockerLabels = { HOST_INACTIVE: 'Host unavailable', EQUIPMENT_UNAV
 export function processingWorkshopView(state, services, actorId = 'player') {
   return processingHostView(state, services, state.locationId, actorId);
 }
-export function processingHostView(state, services, hostId, actorId = 'player') {
+export function processingHostView(state, services, hostId, actorId = 'player', { plan, includeChoices = true } = {}) {
   const visible = canUse(state,actorId,hostId,'useFacilities') || canUse(state,actorId,hostId,'manageEquipment');
   if (!visible) return { hostId, groups: [], private: true };
   const context = services.contextFor(state,hostId,actorId), canViewCargo = canUse(state,actorId,hostId,'viewCargo');
   const runs = processingRuns(state).filter(r => r.hostId === hostId);
-  const readiness=new Map(processingHostObservation(state,hostId,services).runs.map(r=>[r.runId,r]));
+  const readiness=new Map(processingHostObservation(state,hostId,services,plan).runs.map(r=>[r.runId,r]));
   const groups = Object.entries(services.content.infrastructure).filter(([id,def]) =>
     (context.local.infrastructure[id].quantity > 0 || runs.some(r => r.equipmentId === id)) &&
     (equipmentCapabilityTypes(services.content,id).some(c => services.catalog.byCapability[c]) || runs.some(r => r.equipmentId === id))).map(([equipmentId,def]) => {
       const machine = context.local.infrastructure[equipmentId], attached = runs.filter(r => r.equipmentId === equipmentId);
       const choices = [];
-      if (canViewCargo) for (const process of Object.values(services.catalog.definitions)) {
+      if (canViewCargo && includeChoices) for (const process of Object.values(services.catalog.definitions)) {
         if (!definitionHasCapability(services.content,equipmentId,process.capability) || !process.hostKinds.includes(state.entities[hostId].type) || conditionReason(context.actionState,process.startConditions,services.content)) continue;
         const request = { hostId,equipmentId,processId: process.id };
         if (process.kind === 'refining') choices.push({ label: process.name, request, preview: previewStartProcess(state,request,services,actorId) });
@@ -37,7 +37,7 @@ export function processingHostView(state, services, hostId, actorId = 'player') 
       }
       return { equipmentId,name: def.name,quantity: machine.quantity,operational: machine.enabled && machine.health > 0,
         idle: Math.max(0,machine.quantity-attached.length),choices,
-        runs: attached.map(run => ({ ...run, blockedReason:readiness.get(run.id)?.blocker ?? null, label: services.catalog.definitions[run.processId]?.name ?? run.processId,
+        runs: attached.map(run => ({ ...run, speed:readiness.get(run.id)?.speed ?? 0, blockedReason:readiness.get(run.id)?.blocker ?? null, label: services.catalog.definitions[run.processId]?.name ?? run.processId,
           progress: (run.workTotal-run.workRemaining)/run.workTotal, abort: previewAbortProcess(state,run.id,services,actorId) })) };
     });
   return { hostId,groups,canViewCargo,private: false };

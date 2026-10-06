@@ -8,6 +8,8 @@ const STEPS = [
     text: 'Review the discoveries and areas of understanding you have built through research.' },
   { tab: 'workshop', target: '#recipe-select', title: 'Workshop',
     text: 'New designs appear as recipes here. Fabricate parts from stored materials, then use Operations directives to install or repair equipment.' },
+  { tab: 'systems', target: '#facility-systems-heading', title: 'Systems',
+    text: 'Inspect installed machinery, current work, power, cargo, and reasons work is waiting. Known process diagrams explain inputs and outputs. Links open the existing operating interfaces without starting an action.' },
   { tab: 'locations', target: '#location-map', title: 'Locations',
     text: 'Browse nearby places on the map. Selecting and zooming only inspect the network; travel is a separate action.' },
   { tab: 'people', target: '.people-roster', title: 'People',

@@ -25,7 +25,7 @@ export default function processingDisplay(services,onAction) {
       cancel(); signature = shape; rows = new Map(); panel.replaceChildren();
       if (!view.groups.length) panel.append(element('p',view.private ? 'Facility access required.' : 'No industrial machines installed here. Assemble and install a mineral extractor or thermal processor to begin.'));
       for (const group of view.groups) {
-        const card = element('section'); card.className = 'processing-machine';
+        const card = element('section'); card.className = 'processing-machine'; card.dataset.equipmentId = group.equipmentId; card.tabIndex = -1;
         card.append(element('h4',`${group.name} · ${group.quantity} installed`));
         for (const run of group.runs) {
           const row = element('div'); row.className = 'processing-run'; row.dataset.runId = run.id;

@@ -108,6 +108,43 @@ export function createItemKnowledgeSystem(services) {
           ({ itemId:o.id,name:o.name,quantity:o.quantity,reason:o.reason,default:o.id === (slot.defaultItem ?? slot.item),selectedItem:o.id === itemId })) })),
       operatingCost: { ...recipe.cost } };
   }
+  function processView(state,p,amount) {
+    return { id:p.id,name:p.name,kind:'process',amount,
+      inputs:p.inputs.filter(line => knows(state,line.itemId,`processInput:${p.id}`)).map(line => ({ ...line,name:content.items[line.itemId].name })),
+      outputs:p.outputs.filter(line => knows(state,line.itemId,`process:${p.id}`)).map(line => ({ ...line,name:content.items[line.itemId].name })),
+      duration:p.duration,powerRate:p.powerRate };
+  }
+  // Durable admission only. Inspection neither learns facts nor previews installation.
+  function knownOperations(state) {
+    const current = getLocationContext(state,content,world), processes = [];
+    for (const p of Object.values(catalog.processes)) {
+      if (!p.hostKinds.includes(state.entities[current.id]?.type)) continue;
+      if (p.kind === 'refining') {
+        if (![...p.inputs.map(l => knows(state,l.itemId,`processInput:${p.id}`)),
+          ...p.outputs.map(l => knows(state,l.itemId,`process:${p.id}`))].some(Boolean)) continue;
+        processes.push({ ...processView(state,p), capability:p.capability, operation:p.operation,
+          complete:p.inputs.every(l => knows(state,l.itemId,`processInput:${p.id}`)) && p.outputs.every(l => knows(state,l.itemId,`process:${p.id}`)) });
+      } else {
+        const sources = [];
+        for (const hostId of [current.id,...(current.definition.mobile && current.local.dockedAtId ? [current.local.dockedAtId] : [])]) {
+          const def = locationDefinition(state,world,hostId);
+          if (!def || state.entities[hostId]?.lifecycle !== 'active' || !canUse(state,'player',hostId,'useFacilities')) continue;
+          for (const [nodeId,node] of Object.entries(def.resourceNodes ?? {})) {
+            if (!knows(state,node.resourceId,`extraction:${p.id}:${hostId}:${nodeId}`)) continue;
+            sources.push({ hostId,nodeId,name:def.name,itemId:node.resourceId,itemName:content.items[node.resourceId].name,amount:p.batchAmount });
+          }
+        }
+        if (sources.length) processes.push({ id:p.id,name:p.name,kind:'extraction',capability:p.capability,
+          duration:p.duration,powerRate:p.powerRate,sources });
+      }
+    }
+    const recipes = Object.values(content.recipes).filter(r => knows(state,r.output,`recipe:${r.id}`))
+      .map(r => ({ ...recipeView(state,r), conditions:structuredClone(r.conditions), outputName:content.items[r.output].name }));
+    return structuredClone({ processes,recipes });
+  }
+  function knownPurpose(state,id) {
+    return state.knowledge.itemEntries?.[id] ? catalog.entries[id]?.summary ?? null : null;
+  }
   function installations(state,item) {
     if (item.category !== 'product') return [];
     const group = item.installation?.group ?? content.vesselModules[item.id]?.group;
@@ -140,12 +177,8 @@ export function createItemKnowledgeSystem(services) {
     for (const use of catalog.uses[id] ?? []) if (knows(state,id,`ingredient:${use.recipeId}:${use.slotId}`) && !usedIds.has(use.recipeId)) {
       usedIds.add(use.recipeId); model.usedIn.push(recipeView(state,content.recipes[use.recipeId],id));
     }
-    const processView = (p,amount) => ({ id:p.id,name:p.name,kind:'process',amount,
-      inputs:p.inputs.filter(line => knows(state,line.itemId,`processInput:${p.id}`)).map(line => ({ ...line,name:content.items[line.itemId].name })),
-      outputs:p.outputs.filter(line => knows(state,line.itemId,`process:${p.id}`)).map(line => ({ ...line,name:content.items[line.itemId].name })),
-      duration:p.duration,powerRate:p.powerRate });
-    for (const line of catalog.processOutputs[id] ?? []) if (knows(state,id,`process:${line.processId}`)) model.createdBy.push(processView(catalog.processes[line.processId],line.amount));
-    for (const line of catalog.processUses[id] ?? []) if (knows(state,id,`processInput:${line.processId}`)) model.usedIn.push(processView(catalog.processes[line.processId],line.amount));
+    for (const line of catalog.processOutputs[id] ?? []) if (knows(state,id,`process:${line.processId}`)) model.createdBy.push(processView(state,catalog.processes[line.processId],line.amount));
+    for (const line of catalog.processUses[id] ?? []) if (knows(state,id,`processInput:${line.processId}`)) model.usedIn.push(processView(state,catalog.processes[line.processId],line.amount));
     for (const key of Object.keys(remembered.facts)) {
       if (!key.startsWith('node:') && !key.startsWith('source:')) continue;
       const [kind,hostId,sourceId] = key.split(':'), def = locationDefinition(state,world,hostId);
@@ -172,5 +205,5 @@ export function createItemKnowledgeSystem(services) {
     }).map(({ id,name,request,ok,reason }) => ({ id,name,request,ok,reason }));
     return structuredClone(model);
   }
-  return { content,world,catalog,learn,getKnownItemEntry,knownItems:state => Object.values(catalog.entries).filter(e => state.knowledge.itemEntries?.[e.id]).map(e => ({ id:e.id,name:e.name,category:e.category })) };
+  return { content,world,catalog,learn,getKnownItemEntry,knownOperations,knownPurpose,knownItems:state => Object.values(catalog.entries).filter(e => state.knowledge.itemEntries?.[e.id]).map(e => ({ id:e.id,name:e.name,category:e.category })) };
 }

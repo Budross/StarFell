@@ -1652,3 +1652,73 @@ meter::-moz-meter-bar {
 .map-destinations { display:flex; flex-wrap:wrap; gap:.4rem; margin:.6rem 0; max-height:84px; overflow:auto; flex-shrink:0; }
 .map-destinations button { font-size:.75rem; }
 .locations-panel:has(#vessel-controls:not([hidden])) .map-destinations { display:none; }
+
+/* Systems is a supervisory CRT surface. Operating forms remain in their owner tabs. */
+.facility-systems-panel { container-type:inline-size; padding:18px; color:#c4cdc6; font-size:13px; line-height:1.6; }
+.facility-systems-panel h2,.facility-systems-panel h3,.facility-systems-panel h4 { font-weight:normal; color:var(--amber); }
+.facility-systems-panel h2 { font-size:20px; }
+.facility-systems-panel h3 { font-size:14px; }
+.facility-systems-panel h4 { font-size:12px; text-transform:uppercase; letter-spacing:.07em; }
+.fs-heading { display:flex; justify-content:space-between; align-items:start; gap:14px; border-bottom:1px solid var(--border); padding-bottom:14px; }
+.fs-eyebrow,.fs-location,.fs-flow-caption { font-size:11px; letter-spacing:.06em; color:#aab7ab; }
+.fs-location { margin-top:4px; }
+.fs-system-status { font-size:12px; color:var(--green); white-space:nowrap; }
+.fs-system-status[data-status="ATTENTION"],.fs-system-status[data-status="RESTRICTED"] { color:var(--amber); }
+.fs-system-status[data-status="UNAVAILABLE"] { color:var(--phosphor-red); }
+.fs-telemetry { padding:12px 0; display:grid; gap:5px; border-bottom:1px solid var(--border); font-size:12px; }
+.fs-telemetry p { overflow-wrap:anywhere; }
+.fs-message:not(:empty) { border:1px solid var(--border); padding:12px; margin-top:14px; color:var(--amber); }
+.fs-layout { display:grid; grid-template-columns:minmax(0,1fr); gap:18px; margin-top:16px; align-items:start; }
+.fs-schematic { background:#0b140f; border:1px solid #5c6e60; min-width:0; padding:12px; }
+.fs-screen-heading { display:flex; flex-wrap:wrap; justify-content:space-between; gap:6px; border-bottom:1px solid #405647; padding-bottom:8px; }
+.fs-screen-heading span { color:#aab7ab; font-size:10px; }
+.fs-zone { position:relative; margin-top:18px; min-width:0; }
+.fs-zone h4 { padding:0 0 8px 20px; }
+.fs-brackets { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; color:#718c78; }
+.fs-brackets path { fill:none; stroke:currentColor; stroke-width:1; stroke-dasharray:4 3; vector-effect:non-scaling-stroke; }
+.fs-machine-grid { position:relative; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; padding-left:20px; }
+.facility-systems-panel button,.facility-systems-panel select { font:inherit; color:#c4cdc6; background:#131f17; border:1px solid #6b806c; border-radius:0; padding:9px 11px; min-height:44px; max-width:100%; cursor:pointer; }
+.facility-systems-panel button:hover { border-color:var(--amber); background:#20291c; }
+.facility-systems-panel .fs-machine { display:flex; flex-direction:column; gap:4px; width:100%; min-width:0; text-align:left; border:1px solid #6b806c; background:#0f1b13; padding:12px; position:relative; }
+.fs-machine strong { color:#d2ddce; font-size:14px; font-weight:normal; overflow-wrap:anywhere; }
+.fs-machine-state { color:var(--green); font-size:12px; letter-spacing:.09em; }
+.fs-machine[data-status="BLOCKED"] .fs-machine-state,.fs-machine[data-status="DAMAGED"] .fs-machine-state { color:var(--phosphor-red); }
+.fs-machine[data-status="DISABLED"] { border-style:dashed; }
+.fs-machine[data-status="DISABLED"] .fs-machine-state { color:var(--amber); }
+.facility-systems-panel .fs-machine[aria-pressed="true"] { border-color:var(--amber); box-shadow:inset 3px 0 var(--amber); background:#242418; }
+.fs-machine-provision { color:var(--phosphor-blue); font-size:12px; overflow-wrap:anywhere; }
+.fs-machine-activity,.fs-machine-condition { color:#aab7ab; font-size:11px; }
+.fs-legend { border-top:1px solid #405647; margin-top:18px; padding-top:12px; font-size:11px; color:#aab7ab; }
+.fs-inspect { margin-top:10px; }
+.fs-detail { border:1px solid var(--border); background:#111a12; padding:16px; min-width:0; overflow-wrap:anywhere; }
+.fs-detail h3 { font-size:18px; margin:5px 0 12px; }
+.fs-purpose { color:#c4cdc6; }
+.fs-detail-section { margin-top:18px; border-top:1px solid var(--border); padding-top:10px; }
+.fs-detail-section p { margin-top:5px; }
+.fs-detail-section ul { padding-left:18px; margin:8px 0; }
+.fs-detail-section li { margin:5px 0; }
+.fs-detail-section button { margin:6px 6px 0 0; }
+.fs-run { border-left:2px solid #6b806c; margin-top:12px; padding-left:10px; }
+.fs-run strong { font-weight:normal; color:var(--phosphor-blue); }
+.fs-run progress { display:block; width:100%; height:9px; margin:8px 0; accent-color:var(--green); }
+.fs-run p { font-size:12px; }
+.fs-detail label { display:grid; gap:6px; margin-top:10px; color:#aab7ab; font-size:12px; }
+.fs-detail select { width:100%; min-width:0; }
+.fs-process { margin-top:12px; }
+.fs-flow { display:grid; gap:10px; margin:10px 0; }
+.fs-flow > div { border:1px solid #435849; padding:10px; min-width:0; }
+.fs-flow strong { color:var(--phosphor-blue); font-weight:normal; font-size:12px; }
+.fs-flow ul { margin-bottom:0; }
+.fs-flow-unit { display:flex; flex-direction:column; align-items:center; text-align:center; gap:4px; }
+.fs-flow-unit span { font-size:10px; color:var(--amber); letter-spacing:.1em; }
+.fs-flow-note,.fs-readiness { color:#aab7ab; font-size:11px; }
+.fs-status { margin-top:18px; padding:12px; background:#0b140f; border:1px solid #5c6e60; }
+.fs-counts { color:var(--green); font-size:12px; border-bottom:1px solid #405647; padding-bottom:8px; margin-bottom:10px; }
+.fs-issues { display:grid; gap:8px; margin-top:8px; }
+.facility-systems-panel .fs-issues button { text-align:left; color:var(--amber); }
+#facility-systems-shortcut { min-height:44px; }
+.terminal-shortcuts { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:6px; margin-bottom:10px; }
+.terminal-shortcuts .people-shortcut { float:none; margin:0; min-height:44px; }
+@container (min-width:900px) { .fs-layout { grid-template-columns:minmax(0,1fr) 320px; } }
+@container (max-width:620px) { .fs-machine-grid { grid-template-columns:1fr; } .fs-heading { flex-wrap:wrap; } }
+@media(max-width:520px) { .facility-systems-panel { padding:14px 12px; } }

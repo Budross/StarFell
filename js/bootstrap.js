@@ -73,6 +73,12 @@ import { compileVesselDesigns } from './vesselDesignCatalog.js';
 import { designDefinitions } from './designContent.js';
 import { createEquipmentQueries } from './equipmentQuery.js';
 import { compileEquipmentUsage } from './equipmentUsage.js';
+import { createFacilitySystemsView } from './facilitySystemsView.js';
+import { calculateProcessingReadiness } from './processingQuery.js';
+import { processingHostView } from './processingView.js';
+import { previewStartProcess } from './processing.js';
+import { previewRecipe } from './crafting.js';
+import { conditionReason } from './conditionContext.js';
 
 // Narrow capabilities, bound explicitly to a game's catalogs and collectors.
 export function createEffectServices({ content, world, people, worldOperations }) {
@@ -208,6 +214,19 @@ export function buildGameSystems({ content = defaultContent, locationSource = lo
     ...createShipyardActions(systems), ...designStudy.actions, ...createVesselCommandActions(systems), ...missions.commands, ...createAdditionalActions(systems)];
   linkLocationActions(world, actions);
   const contextFor = (state, id, actorId) => getLocationContext(state, content, world, id, actorId);
+  systems.facilitySystems = createFacilitySystemsView({content,contextFor,
+    describeInstalled:equipment.describeInstalled,knownOperations:itemKnowledge.knownOperations,knownPurpose:itemKnowledge.knownPurpose,
+    readProcessing(state,hostId,actorId,facilities) {
+      const plan = Object.keys(state.processing.runs).length ? calculateProcessingReadiness(state,processing) : {hosts:[],runs:[]};
+      return {host:plan.hosts.find(h => h.hostId===hostId) ?? null,
+        groups:facilities ? processingHostView(state,processing,hostId,actorId,{plan,includeChoices:false}).groups : []};
+    },
+    previewProcess:(state,request)=>previewStartProcess(state,request,processing),
+    previewCraft:(state,id,selections)=>previewRecipe(contextFor(state).actionState,id,selections,content),
+    readMethods:(state,ctx)=>Object.values(research.catalog.methods).filter(m=>!m.retired).map(m=>({name:m.name,conditions:m.conditions,
+      reason:ctx.permissions.useFacilities ? conditionReason(ctx.actionState,m.conditions,content) : 'Facility use permission required.'})),
+    readContacts:communications.contacts
+  });
   // Narrative receives only read capabilities, never ledger append/effect services.
   const narrativeReads={content,world,people,research,equipment,contextFor,vesselDesigns:systems.vesselDesigns};
   const providers=Object.freeze([locationFactProvider(narrativeReads),equipmentFactProvider(narrativeReads),designFactProvider(narrativeReads),powerFactProvider(narrativeReads),

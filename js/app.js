@@ -28,6 +28,7 @@ import createUiTour from './uiTour.js';
 import { firstRunMessages } from './streamContent.js';
 import itemKnowledgeDisplay from './itemKnowledgeDisplay.js';
 import itemContextDisplay from './itemContextDisplay.js';
+import facilitySystemsDisplay from './facilitySystemsDisplay.js';
 
 const systems = buildGameSystems();
 const { content, world, people, research, actions, contextFor } = systems;
@@ -85,6 +86,9 @@ tabs.registerTab({
 });
 tabs.registerTab({ id: "workshop", label: "Workshop", panel: document.querySelector("#workshop-panel"),
   onDeactivate() { renderItemContext.close(false); }
+});
+tabs.registerTab({ id: "systems", label: "Systems", panel: document.querySelector("#systems-panel"),
+  onActivate() { renderSystems(runtime.getState()); }
 });
 tabs.registerTab({ id: "locations", label: "Locations", panel: document.querySelector("#locations-panel") });
 tabs.registerTab({ id: "people", label: "People", panel: document.querySelector("#people-panel"),
@@ -203,6 +207,31 @@ const renderItemContext = itemContextDisplay(systems.itemKnowledge,handleAction,
 });
 const renderShipyard = shipyardDisplay(systems, handleAction);
 const renderVesselControls = vesselControlsDisplay(systems, handleAction);
+function revealTerminalTarget(target) {
+  if (!target) return;
+  if (!target.matches('button, input, select, textarea')) target.tabIndex = -1;
+  target.focus({preventScroll:true});
+  // Reveal within the destination panel, without moving the mobile document.
+  const panel=target.closest('[role="tabpanel"]');
+  if (panel) {
+    const bounds=panel.getBoundingClientRect(), rect=target.getBoundingClientRect();
+    if (rect.top < bounds.top || rect.bottom > bounds.bottom) panel.scrollTop += rect.top-bounds.top-12;
+  }
+}
+const renderSystems = facilitySystemsDisplay(systems.facilitySystems,content,(owner,equipmentId)=>{
+  if (owner==='research') { tabs.activateTab('research'); revealTerminalTarget(document.querySelector('#research-experiment-heading')); }
+  else if (owner==='communications') { tabs.activateTab('people'); revealTerminalTarget(document.querySelector('.people-roster')); }
+  else {
+    tabs.activateTab('workshop');
+    const target=owner==='fabrication' ? document.querySelector('#recipe-select') :
+      [...document.querySelectorAll('#processing-machines [data-equipment-id]')].find(el=>el.dataset.equipmentId===equipmentId) ?? document.querySelector('#processing-heading');
+    revealTerminalTarget(target);
+  }
+});
+document.querySelector('#facility-systems-shortcut').addEventListener('click',()=>{
+  tabs.activateTab('systems'); renderSystems(runtime.getState());
+  revealTerminalTarget(document.querySelector('#facility-systems-heading'));
+});
 
 function loadOrCreateGame() {
   try {
@@ -339,6 +368,7 @@ function render() {
   renderItemContext(state);
   renderShipyard(state);
   renderVesselControls(state);
+  renderSystems(state);
   const stable = view.powerRate >= 0;
   elements.alertState.classList.toggle("stable", stable);
   elements.alertStatus.textContent = !context.permissions.viewCargo ? "VISITOR ACCESS" : stable ? "SYSTEMS STABLE" : "ATTENTION REQUIRED";
@@ -464,7 +494,7 @@ elements.commandForm.addEventListener("submit", event => {
 
 document.addEventListener("keydown", event => {
   if (event.ctrlKey || event.metaKey || event.altKey || event.shiftKey ||
-      event.target.closest("input, textarea, select, [contenteditable], #people-panel")) return;
+      event.target.closest("input, textarea, select, [contenteditable], #people-panel, #systems-panel")) return;
   if (event.code === 'Space' && selectedGathering && !document.querySelector('#operations-panel').hidden) {
     event.preventDefault();
     if (!event.repeat) toggleRepeating();
