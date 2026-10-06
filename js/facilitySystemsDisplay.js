@@ -16,21 +16,32 @@ export default function facilitySystemsDisplay(view,content,openOwner) {
   const panel = document.querySelector('#systems-panel');
   panel.innerHTML = `<header class="fs-heading"><div><p class="fs-eyebrow">SUPERVISORY TERMINAL / LOCAL INFRASTRUCTURE</p>
     <h2 id="facility-systems-heading" tabindex="-1">Facility Systems</h2><p class="fs-location"></p></div><strong class="fs-system-status"></strong></header>
+    <div class="fs-layout"><section class="fs-overview" aria-label="Facility overview" tabindex="0">
     <div class="fs-telemetry" aria-label="Facility telemetry"><p id="fs-power" tabindex="-1"></p><p id="fs-cargo" tabindex="-1"></p></div>
-    <p class="fs-message"></p><div class="fs-layout"><section class="fs-schematic" aria-labelledby="fs-schematic-heading">
+    <p class="fs-message"></p><section class="fs-schematic" aria-labelledby="fs-schematic-heading">
     <div class="fs-screen-heading"><h3 id="fs-schematic-heading">Facility schematic</h3><span>INSTALLED GROUPS / CURRENT</span></div>
     <div class="fs-zones" role="group" aria-label="Installed equipment"></div>
     <p class="fs-legend">▶ Active · ○ Ready · Ⅱ Idle · × Disabled · ! Attention<br>Zone brackets group functions; process arrows explain batch requirements.</p>
     <button type="button" class="fs-inspect">Inspect selected equipment</button>
-    </section><section id="fs-detail" class="fs-detail" aria-labelledby="fs-detail-heading"></section></div>
+    </section>
     <footer class="fs-status"><p class="fs-counts"></p><h3>Current attention</h3><div class="fs-issues"></div></footer>
+    </section><section id="fs-detail" class="fs-detail" aria-labelledby="fs-detail-heading" tabindex="0"></section></div>
     <p class="sr-only fs-announcement" role="status" aria-live="polite" aria-atomic="true"></p>`;
   const $ = selector => panel.querySelector(selector), zones = $('.fs-zones'), detail = $('#fs-detail');
   const selections = new Map(), drafts = new Map(), nodes = new Map();
   let state, model, selectedId = null, shape = '', detailShape = '', issueShape = '', diagramShape = '';
   let runRows = new Map(), diagramSelect, diagramBody, readiness, heading;
   const announce = text => setText($('.fs-announcement'),text);
-  $('.fs-inspect').onclick=()=>{heading?.focus({preventScroll:true});heading?.scrollIntoView({block:'nearest'});};
+  function reveal(target) {
+    if (!target) return;
+    target.focus({preventScroll:true});
+    const pane=target.closest('.fs-overview,.fs-detail');
+    if (!pane) return;
+    const bounds=pane.getBoundingClientRect(), rect=target.getBoundingClientRect();
+    if (rect.top < bounds.top) pane.scrollTop += rect.top-bounds.top-8;
+    else if (rect.bottom > bounds.bottom) pane.scrollTop += rect.bottom-bounds.bottom+8;
+  }
+  $('.fs-inspect').onclick=()=>reveal(heading);
   const quantity = line => `${formatQuantity(line.amount,line.itemId,content)} ${line.name ?? content.items[line.itemId].name}`;
   const button = (text,action) => { const b = element('button',text); b.type='button'; b.onclick=action; return b; };
   const observer = new ResizeObserver(() => { if (!panel.hidden) drawBrackets(); });
@@ -51,8 +62,8 @@ export default function facilitySystemsDisplay(view,content,openOwner) {
   }
   function select(id,focus = false) {
     selectedId=id; selections.set(model.hostId,id); detailShape=''; diagramShape='';
-    render(state); announce(`${model.groups.find(g=>g.equipmentId===id)?.name ?? 'Equipment'} selected.`);
-    if (focus) { const target=nodes.get(id)?.button; target?.focus({preventScroll:true}); target?.scrollIntoView({block:'nearest'}); }
+    render(state); detail.scrollTop=0; announce(`${model.groups.find(g=>g.equipmentId===id)?.name ?? 'Equipment'} selected.`);
+    if (focus) reveal(nodes.get(id)?.button);
   }
   function makeMachines() {
     const hadFocus = zones.contains(document.activeElement);
@@ -144,7 +155,7 @@ export default function facilitySystemsDisplay(view,content,openOwner) {
     if (group.capabilities.some(c=>c.owner==='research')) link('Open Research','research');
     if (group.capabilities.some(c=>c.owner==='communications')) link('Open Communications','communications');
     links.append(button('Return to schematic',()=>{
-      const target=nodes.get(group.equipmentId)?.button;target?.focus({preventScroll:true});target?.scrollIntoView({block:'nearest'});
+      reveal(nodes.get(group.equipmentId)?.button);
     }));
     if (hadFocus) {
       const replacement=[...detail.querySelectorAll('[data-fs-focus]')].find(el=>el.dataset.fsFocus===focusKey);
@@ -237,7 +248,7 @@ export default function facilitySystemsDisplay(view,content,openOwner) {
           if (issue.equipmentId) {
             if (issue.runId) drafts.set(`${model.hostId}/${issue.equipmentId}`,`run:${issue.runId}`);
             select(issue.equipmentId,true);
-          } else {const target=$(`#fs-${issue.target}`);target.focus({preventScroll:true});target.scrollIntoView({block:'nearest'});}
+          } else reveal($(`#fs-${issue.target}`));
         }); b.dataset.issueKey=issue.key;$('.fs-issues').append(b);
       }
       if (!model.issues.length) $('.fs-issues').append(element('p',model.access==='RESTRICTED' ? 'Private facility status is unavailable.' : model.access==='UNAVAILABLE' ? model.message : 'No current equipment or work issues.'));

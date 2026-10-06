@@ -1655,6 +1655,7 @@ meter::-moz-meter-bar {
 
 /* Systems is a supervisory CRT surface. Operating forms remain in their owner tabs. */
 .facility-systems-panel { container-type:inline-size; padding:18px; color:#c4cdc6; font-size:13px; line-height:1.6; }
+.terminal-panels > .facility-systems-panel { display:grid; grid-template-rows:auto minmax(0,1fr); overflow:hidden; }
 .facility-systems-panel h2,.facility-systems-panel h3,.facility-systems-panel h4 { font-weight:normal; color:var(--amber); }
 .facility-systems-panel h2 { font-size:20px; }
 .facility-systems-panel h3 { font-size:14px; }
@@ -1668,8 +1669,10 @@ meter::-moz-meter-bar {
 .fs-telemetry { padding:12px 0; display:grid; gap:5px; border-bottom:1px solid var(--border); font-size:12px; }
 .fs-telemetry p { overflow-wrap:anywhere; }
 .fs-message:not(:empty) { border:1px solid var(--border); padding:12px; margin-top:14px; color:var(--amber); }
-.fs-layout { display:grid; grid-template-columns:minmax(0,1fr); gap:18px; margin-top:16px; align-items:start; }
-.fs-schematic { background:#0b140f; border:1px solid #5c6e60; min-width:0; padding:12px; }
+.fs-layout { display:grid; grid-template-columns:minmax(0,1fr); grid-template-rows:repeat(2,minmax(0,1fr)); min-height:0; gap:18px; margin-top:16px; overflow:hidden; }
+.fs-overview,.fs-detail { min-height:0; overflow-y:auto; overscroll-behavior:contain; scrollbar-gutter:stable; }
+.fs-overview { min-width:0; }
+.fs-schematic { background:#0b140f; border:1px solid #5c6e60; min-width:0; padding:12px; margin-top:16px; }
 .fs-screen-heading { display:flex; flex-wrap:wrap; justify-content:space-between; gap:6px; border-bottom:1px solid #405647; padding-bottom:8px; }
 .fs-screen-heading span { color:#aab7ab; font-size:10px; }
 .fs-zone { position:relative; margin-top:18px; min-width:0; }
@@ -1719,6 +1722,6 @@ meter::-moz-meter-bar {
 #facility-systems-shortcut { min-height:44px; }
 .terminal-shortcuts { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:6px; margin-bottom:10px; }
 .terminal-shortcuts .people-shortcut { float:none; margin:0; min-height:44px; }
-@container (min-width:900px) { .fs-layout { grid-template-columns:minmax(0,1fr) 320px; } }
+@container (min-width:900px) { .fs-layout { grid-template-columns:minmax(0,1fr) 320px; grid-template-rows:minmax(0,1fr); } }
 @container (max-width:620px) { .fs-machine-grid { grid-template-columns:1fr; } .fs-heading { flex-wrap:wrap; } }
 @media(max-width:520px) { .facility-systems-panel { padding:14px 12px; } }
