@@ -1447,7 +1447,52 @@ meter::-moz-meter-bar {
   .status-header .habitat-mark { font-size:14px; }
 }
 @media (prefers-reduced-motion:reduce) { :root,.console { transition:none; } }
-.crt:has(#navigation-status:not([hidden])) { grid-template-rows:auto auto minmax(0,1fr) auto; }
+.crt { grid-template-rows:auto auto minmax(0,1fr) auto; }
+.position-strip { display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:6px 12px; padding:10px 16px; border-bottom:1px solid #806d3945; font-size:12px; line-height:1.5; }
+#position-breadcrumb { color:var(--green); overflow-wrap:anywhere; }
+.position-strip button,#surroundings-locations,.subject-heading button { color:var(--amber); background:transparent; border:1px solid #806d3966; padding:7px 10px; min-height:34px; }
+.position-strip #navigation-status { grid-column:1 / -1; margin:0; padding:0; font-size:12px; }
+.terminal-workspace { min-height:0; min-width:0; display:grid; grid-template-columns:minmax(0,1fr); overflow:hidden; }
+.terminal-workspace.surroundings-expanded { grid-template-columns:minmax(200px,26%) minmax(0,1fr); }
+.surroundings { min-height:0; overflow:auto; padding:16px 12px; border-right:1px solid #806d3945; background:#0d150d50; }
+.surroundings[hidden],.subject-context[hidden] { display:none!important; }
+.surroundings h2 { color:var(--green); font-size:16px; line-height:1.4; margin-bottom:16px; }
+.surroundings section { margin-bottom:16px; }
+.surroundings h3 { font-size:11px; letter-spacing:.13em; color:var(--amber-dim); margin-bottom:5px; }
+.surroundings-list { display:grid; gap:3px; }
+.surroundings-list button { display:flex; flex-wrap:wrap; align-items:center; gap:3px 8px; width:100%; min-height:38px; padding:7px; text-align:left; background:transparent; border:1px solid transparent; color:var(--amber); font-size:14px; line-height:1.35; }
+.surroundings-list button small { margin-left:auto; font-size:10px; color:var(--muted); }
+.surroundings-list button:hover,.surroundings-list button.selected { background:#e6b86b0c; border-color:#806d3966; }
+.surroundings-list button:disabled { color:var(--muted); cursor:not-allowed; }
+.surroundings-empty { color:var(--muted); font-size:12px; line-height:1.5; padding:7px; }
+.operations-panel:has(#subject-context:not([hidden])) { grid-template-rows:minmax(100px,1fr) auto auto; }
+.subject-context { padding:12px 22px; border-top:1px solid #806d3945; background:#141d1355; max-height:260px; overflow:auto; }
+.subject-heading { display:flex; align-items:center; flex-wrap:wrap; gap:8px; margin-bottom:8px; }
+.subject-heading h2 { color:var(--green); font-size:15px; flex:1; }
+#subject-status,.subject-service { font-size:11px; color:var(--muted); }
+.subject-heading button { font-size:11px; }
+#subject-description { font-size:14px; line-height:1.6; }
+.subject-service:empty,#subject-description:empty { display:none; }
+.subject-actions { display:flex; flex-wrap:wrap; gap:7px; margin-top:8px; }
+.subject-actions button { display:grid; gap:4px; text-align:left; min-height:40px; padding:8px 10px; color:var(--amber); background:#273023; border:1px solid #806d3977; font-size:14px; }
+.subject-actions button small { color:var(--muted); font-size:12px; max-width:50ch; }
+.subject-actions button:disabled { color:var(--muted); background:#141b14; cursor:not-allowed; }
+@media(max-width:950px) {
+  .terminal-workspace.surroundings-expanded { grid-template-columns:minmax(0,1fr); overflow:auto; display:block; }
+  .terminal-workspace.surroundings-expanded .terminal-panels { height:auto; min-height:450px; overflow:visible; }
+  .terminal-workspace.surroundings-expanded .terminal-panels > [role="tabpanel"] { height:auto; min-height:450px; }
+  .terminal-workspace.surroundings-expanded .operations-panel { grid-template-rows:minmax(180px,1fr) auto; }
+  .terminal-workspace.surroundings-expanded .operations-panel:has(#subject-context:not([hidden])) { grid-template-rows:minmax(180px,1fr) auto auto; }
+  .surroundings { border-right:0; border-bottom:1px solid #806d3945; display:grid; grid-template-columns:1fr 1fr; gap:8px 18px; overflow:visible; }
+  .surroundings h2,.surroundings section:has(#surroundings-present) { grid-column:1 / -1; }
+  .surroundings h2 { margin:0 0 5px; }
+  .surroundings section { margin:0; }
+  #surroundings-present { grid-template-columns:1fr 1fr; }
+  #surroundings-locations { align-self:end; justify-self:start; }
+  .position-strip { font-size:11px; padding:10px 12px; }
+  .surroundings-list button { min-height:44px; }
+  .subject-context { padding:12px; }
+}
 
 /* People share the CRT shell; the roster always describes the occupied site. */
 .people-panel { container-type:inline-size; }

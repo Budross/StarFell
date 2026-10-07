@@ -6,6 +6,7 @@ import { record, validId, safeKey, requireValid, validateConditions, conditionCo
 import { conditionReason } from "./conditionContext.js";
 import { compileAmounts } from "./quantities.js";
 import { validateNarrativeMetadata } from './narrative/narrativeMetadata.js';
+import { entryPlaceId, localSpaceFor, playerPlaceId } from './localSpace.js';
 
 const check = (ok, message) => requireValid(ok, `Invalid NPCs: ${message}.`);
 export function buildNpcCatalog(source, world, content) {
@@ -20,6 +21,8 @@ export function buildNpcCatalog(source, world, content) {
     check(["active", "inactive"].includes(def.initialLifecycle), `initial lifecycle ${id}`);
     check(typeof def.name === "string" && def.name.trim() && typeof def.description === "string", `text ${id}`);
     check(def.spawn === false || world.definitions[def.initialLocationId]?.kind === "site", `starting location ${id}`);
+    def.initialLocalPlaceId??=entryPlaceId(world.definitions[def.initialLocationId]);
+    check(validId(def.initialLocalPlaceId)&&(def.spawn===false||Object.hasOwn(localSpaceFor(world.definitions[def.initialLocationId]).places,def.initialLocalPlaceId)),`starting place ${id}`);
     def.initialInventory ??= {}; def.inventoryCapacities ??= {}; def.initialFlags ??= {};
     def.interactions ??= ["inspect", "talk"]; def.dialogueGroups ??= []; def.excludeConversations ??= []; def.order ??= 0;
     check(Number.isFinite(def.order), `order ${id}`);
@@ -39,7 +42,7 @@ export function buildNpcCatalog(source, world, content) {
 }
 
 export function createNpcState(def) {
-  return { locationId: def.initialLocationId, inventory: structuredClone(def.initialInventory), flags: structuredClone(def.initialFlags) };
+  return { locationId: def.initialLocationId, localPlaceId:def.initialLocalPlaceId??'main', inventory: structuredClone(def.initialInventory), flags: structuredClone(def.initialFlags) };
 }
 export function validateNpcState(npc, def, world, content, unplaced = false) {
   check(record(npc) && (unplaced || world.definitions[npc.locationId]?.kind === "site"), `saved location ${def.id}`);
@@ -51,6 +54,7 @@ export function validateNpcState(npc, def, world, content, unplaced = false) {
 export function npcVisible(state, id, system) {
   const def = npcDefinition(state, system, id), npc = state.npcs?.[id];
   if (!def || !npc || state.entities && !isEntityActive(state, id) || npc.locationId !== state.locationId) return false;
+  if((npc.localPlaceId??entryPlaceId(locationDefinition(state,system.world,npc.locationId)))!==playerPlaceId(state,system.world))return false;
   const context = system.context(state, id);
   return !conditionReason(context.local, def.presenceConditions, system.content, context) && !conditionReason(context.local, def.visibilityConditions, system.content, context);
 }
@@ -62,10 +66,11 @@ export function contactReason(state, id, system) {
   const reason = conditionReason(context.local, def.interactionConditions, system.content, context);
   return reason ? def.blockedReason || reason : "";
 }
-export function relocateNpc(state, id, destinationId, system) {
+export function relocateNpc(state, id, destinationId, system, placeId=entryPlaceId(locationDefinition(state,system.world,destinationId))) {
   check(!!npcDefinition(state, system, id) && (!state.entities || isEntityActive(state, id) && isEntityActive(state, destinationId)) && locationDefinition(state, system.world, destinationId)?.kind === "site", "relocation target");
   check(locationDefinition(state, system.world, destinationId)?.boardable !== false, 'autonomous vessels cannot carry occupants');
-  state.npcs[id].locationId = destinationId;
+  check(Object.hasOwn(localSpaceFor(locationDefinition(state,system.world,destinationId)).places,placeId),'relocation place');
+  state.npcs[id].locationId = destinationId;state.npcs[id].localPlaceId=placeId;
 }
 
 export function collectNpcReferences(state) {

@@ -2,7 +2,8 @@ import { allocateEntityId, makeEntity, hasEntity, validEntityId, getEntity, reco
 import { createLocationState, validateLocalState } from "./locations.js";
 import { createNpcState, validateNpcState } from "./npcs.js";
 import { defaultAccess, validateAuthority } from "./authority.js";
-import { runtimeWorld } from "./entityQueries.js";
+import { runtimeWorld, locationDefinition } from "./entityQueries.js";
+import { entryPlaceId, localSpaceFor } from './localSpace.js';
 import { validateShipStates } from "./ships.js";
 import { storageSummary } from "./storage.js";
 import { normalizeCreationSpec } from "./entityCreationSpec.js";
@@ -104,7 +105,12 @@ export function createEntities(state, systems, specs) {
   validateEntities(state); validateAuthority(state);
   const liveWorld = runtimeWorld(state, world);
   for (const { id, spec, def } of entries) {
-    if (spec.type === "npc") validateNpcState(state.npcs[id], def, liveWorld, content);
+    if (spec.type === "npc") {
+      const npc=state.npcs[id],host=locationDefinition(state,world,npc.locationId);
+      npc.localPlaceId=spec.localPlaceId??entryPlaceId(host);
+      if(!Object.hasOwn(localSpaceFor(host).places,npc.localPlaceId))throw new Error('Invalid NPC local place.');
+      validateNpcState(npc, def, liveWorld, content);
+    }
     else if (def) {
       validateLocalState(state.locations[id], def, content, liveWorld);
       if (storageSummary({ ...state.locations[id], capacityVolumeUnits: def.capacityVolumeUnits }, content).overloadVolumeUnits > 0) throw new Error("Initial cargo exceeds entity capacity.");

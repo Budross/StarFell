@@ -6,6 +6,7 @@ import { effectProducerMetadata,validateProjectRequirements } from './projectVal
 import { externalProducers as defaultExternalProducers } from './externalProducers.js';
 import { createItemActions } from "./itemActions.js";
 import { createShipActions } from "./ships.js";
+import { createLocalMovementAction, learnLocalPlaces } from './localSpace.js';
 import { reconcileContact, resolveTopics } from "./dialogue.js";
 import { createCommunications } from './communications.js';
 import { createCommunicationActions, communicationConditionSources, communicationProducerMetadata } from './communicationActions.js';
@@ -209,7 +210,7 @@ export function buildGameSystems({ content = defaultContent, locationSource = lo
   // Preserve existing explicitly authored operations in custom legacy catalogs.
   const communicationActions=itemActions.some(a=>a.id==='scanSignal')?[]:createCommunicationActions(content,equipment);
   const actions = [...itemActions,...communicationActions, ...createItemInstallationActions(systems), ...createLocationActions(world, content, effectServices, worldOperations),
-    ...createShipActions(world, content, ledgerServices), ...createDialogueActions(people, effectServices),
+    ...createShipActions(world, content, ledgerServices), createLocalMovementAction(world,content), ...createDialogueActions(people, effectServices),
     ...createResearchActions(research, effectServices, ledgerServices), ...createCargoActions(world, content), ...createProcessingActions(processing),
     ...createShipyardActions(systems), ...designStudy.actions, ...createVesselCommandActions(systems), ...missions.commands, ...createAdditionalActions(systems)];
   linkLocationActions(world, actions);
@@ -243,6 +244,7 @@ export function buildGameSystems({ content = defaultContent, locationSource = lo
       return { saveRequested: !!closure, output: { closure } };
     } },
     { id:'item-knowledge',advance(state) { return { saveRequested:itemKnowledge.learn(state) }; } },
+    { id:'local-perception',advance(state) { return { saveRequested:learnLocalPlaces(state,{world,content}) }; } },
     vesselObservations.simulationStep
   ], { ...systems, referenceCollectors }));
   const simulationSteps = snapshotSimulationSteps(selectedSteps.map(withLedgerSaveRequest));
@@ -251,5 +253,5 @@ export function buildGameSystems({ content = defaultContent, locationSource = lo
   return { ...systems, missionAuthoring, missionRuntimeContracts,narrative, actions, referenceCollectors, effectServices, contextFor, simulationSteps, stateLifecycle, stateServices,
     prepareAction:state => itemKnowledge.learn(state),
     validate: stateServices.validateState,
-    reconcileAction: state => { reconcileVessels(state, content, world); reconcileAuthoredMapKnowledge(state,world,content); const closure = reconcileContact(state, people); itemKnowledge.learn(state); vesselObservations.capture(state); return closure; } };
+    reconcileAction: state => { reconcileVessels(state, content, world); reconcileAuthoredMapKnowledge(state,world,content); learnLocalPlaces(state,{world,content}); const closure = reconcileContact(state, people); itemKnowledge.learn(state); vesselObservations.capture(state); return closure; } };
 }

@@ -10,6 +10,7 @@ import { getLocationContext, isKnown, graphView, physicalLinks } from "./locatio
 import { deriveVessel, vesselSpeed } from './vessels.js';
 import { consumeVesselFuel } from './vesselFuel.js';
 import { VESSEL_REFERENCE_MASS_KG } from './vesselModuleCatalog.js';
+import { entryPlaceId } from './localSpace.js';
 
 const record = value => value !== null && typeof value === "object" && !Array.isArray(value);
 export const isShip = (world, id, state = {}) => locationDefinition(state, world, id)?.mobile === true;
@@ -102,6 +103,7 @@ export function navigate(state, operation, targetId, world, content, shipId = st
   const name = locationDefinition(state, world, targetId)?.name;
   if (operation === "board" || operation === "disembark") {
     state.locationId = targetId;
+    state.localPlaceId=entryPlaceId(locationDefinition(state,world,targetId));
     return `${operation === "board" ? "Boarded" : "Disembarked at"} ${name}. ${locationDefinition(state, world, targetId).description}`;
   }
   if (operation === "undock") {

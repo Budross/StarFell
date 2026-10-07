@@ -53,7 +53,7 @@ export function createWorldOperations({ content, world, people, referenceCollect
     retireEntity: (state, id, options, context) => transition(state, id, 'retired', options, context),
     relocateNpc(state, id, destinationId, context = {}) {
       const fromLocationId = state.npcs[id]?.locationId;
-      relocateNpc(state, id, destinationId, people);
+      relocateNpc(state, id, destinationId, people, context.placeId);
       if (fromLocationId === destinationId) return;
       append(state, { type: 'NPC_RELOCATED', actorId: id, targetId: destinationId,
         locationId: destinationId, areaId: state.locations[destinationId].areaId,

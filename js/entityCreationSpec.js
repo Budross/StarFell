@@ -6,7 +6,7 @@ import { deriveVessel, validateAssemblySyntax } from './vessels.js';
 
 // Pure specification boundary shared by authored effects and trusted runtime creation.
 export function normalizeCreationSpec(value, refs = {}, { authored = false, bindings = false } = {}) {
-  const allowed = ["type", "definitionId", "displayName", "areaId", "locationId", "dockedAtId", "ownerId", "controllerId", "access", "resources", "infrastructure", "inventory", "lifecycle", "assembly", ...(bindings ? ["key"] : [])];
+  const allowed = ["type", "definitionId", "displayName", "areaId", "locationId", "localPlaceId", "dockedAtId", "ownerId", "controllerId", "access", "resources", "infrastructure", "inventory", "lifecycle", "assembly", ...(bindings ? ["key"] : [])];
   if (!record(value) || Object.keys(value).some(k => !allowed.includes(k)) || !["site", "ship", "npc", "principal"].includes(value.type) ||
       ![undefined, "active", "inactive"].includes(value.lifecycle)) throw new Error("Invalid entity creation specification.");
   const spec = structuredClone(value);
@@ -15,8 +15,9 @@ export function normalizeCreationSpec(value, refs = {}, { authored = false, bind
     if (refs.content) deriveVessel(spec.assembly, refs.content); else validateAssemblySyntax(spec.assembly);
   }
   if (spec.displayName !== undefined && (typeof spec.displayName !== "string" || !spec.displayName.trim())) throw new Error("Invalid entity name.");
-  const domainKeys = spec.type === "npc" ? ["locationId", "inventory"] : spec.type === "principal" ? [] : ["areaId", "resources", "infrastructure", ...(spec.type === "ship" ? ["dockedAtId"] : [])];
-  if (["areaId", "locationId", "dockedAtId", "resources", "infrastructure", "inventory"].some(k => Object.hasOwn(spec, k) && !domainKeys.includes(k))) throw new Error("Creation fields do not match the entity type.");
+  const domainKeys = spec.type === "npc" ? ["locationId", "localPlaceId", "inventory"] : spec.type === "principal" ? [] : ["areaId", "resources", "infrastructure", ...(spec.type === "ship" ? ["dockedAtId"] : [])];
+  if (["areaId", "locationId", "localPlaceId", "dockedAtId", "resources", "infrastructure", "inventory"].some(k => Object.hasOwn(spec, k) && !domainKeys.includes(k))) throw new Error("Creation fields do not match the entity type.");
+  if (spec.localPlaceId !== undefined && !validId(spec.localPlaceId)) throw new Error("Invalid NPC local place.");
   if (spec.type === "principal" ? spec.definitionId !== undefined || !spec.displayName : !validId(spec.definitionId)) throw new Error("Invalid entity definition or organization name.");
   if (["npc", "principal"].includes(spec.type) && (spec.ownerId != null || spec.controllerId != null)) throw new Error("Actors cannot be owned.");
   for (const key of ["areaId", "locationId", "dockedAtId", "ownerId", "controllerId"]) {

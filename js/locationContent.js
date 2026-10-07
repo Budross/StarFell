@@ -100,6 +100,20 @@ export const locationDefinitions = {
       ],
       initialResources: { power: 8 },
       initialInfrastructure: { solar: { quantity: 1, health: 0.2 }, habitat: { quantity: 1 }, fabricator: { quantity: 1 } },
+      localSpace: {
+        entryPlaceId:'main',
+        places:{main:{name:'Fabrication compartment'},serviceBay:{name:'Service bay'},exposure:{name:'Mineral exposure'}},
+        connections:[{from:'main',to:'serviceBay'},{from:'serviceBay',to:'main'},{from:'main',to:'exposure'},{from:'exposure',to:'main'}],
+        subjects:[
+          {kind:'scene',id:'fitting',placeId:'main'},
+          {kind:'scene',id:'reactionWreckage',placeId:'main',presentWhen:{not:{localFlags:['examined:reactionWreckage']}}},
+          {kind:'scene',id:'collectors',placeId:'main'},
+          {kind:'equipment',id:'fabricator',placeId:'main',serviceAccess:'facility'},
+          {kind:'scene',id:'solarHardware',placeId:'serviceBay'},
+          {kind:'equipment',id:'solar',placeId:'serviceBay',actions:['repairSolar'],serviceAccess:'facility'},
+          {kind:'resource',id:'surfaceMinerals',placeId:'exposure',name:'Silicon mineral exposure',unknownName:'Mineral exposure'}
+        ],nearby:[{targetId:'supplyPlatform'}]
+      },
       sceneObjects: [
         { id: 'reactionWreckage', name: 'Recovered reaction assembly', description: 'A loose drive assembly rests among the local wreckage. Recovery needs space for its 0.80 m³ envelope.',
           effects: [{ type: 'grantItem', itemId: 'basicReactionThruster', amount: 1, destinationId: 'current' }] },
@@ -111,6 +125,7 @@ export const locationDefinitions = {
       remoteDescription: "An owned storage platform. No fabrication equipment is installed.",
       description: "The supply platform provides storage space in the Habitat 05 vicinity.",
       narrative:{base:'The supply platform provides storage space in the Habitat 05 vicinity.',observableTopics:['local_ship_presence']},
+      localSpace:{entryPlaceId:'main',places:{main:{name:''}},connections:[],subjects:[],nearby:[{targetId:'habitat'}]},
       capacities: { power: 20 }, initialResources: { power: 2 },initialInfrastructure:{installedAntenna:{quantity:1}},
       initialAccess:{public:['enter','dock'],grants:{mira:['useFacilities']}} },
     derelict: { name: "Derelict relay", type: "derelict", areaId: "outerReach",
@@ -120,5 +135,6 @@ export const locationDefinitions = {
       sceneObjects: [{ id: "manifest", name: "Construction manifest", description: "The manifest ends mid-shift. No evacuation order was logged." }] }
   },
   templates: { modularVessel: { name: 'Modular vessel', type: 'ship', modularVessel: true, storage: { capacityM3: 0 }, capacities: { power: 0 },
+    localSpace:{entryPlaceId:'main',places:{main:{name:'Flight compartment'}},connections:[],subjects:[],nearby:[{targetId:'vicinity'},{targetId:'outerReach'}]},
     description: 'A vessel assembled from installed modules.', remoteDescription: 'A modular vessel.', initialAccess: { public: [], grants: {} } } }
 };

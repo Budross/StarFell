@@ -53,6 +53,10 @@ export function installFreshWorld(state,content,world,seed) {
       const area={...structuredClone(world.definitions[startAreaId]),id:areaId,name:`Asteroid ${body.cell.join('-')}`,position:body.position,primaryLocalId:siteId,conditions:{},initialMapKnowledge:'UNKNOWN',resourceNodes:{},sceneObjects:[],startupMessages:[],inspectionEffects:[],actions:[],actionSets:[],description:'A notable natural body.',remoteDescription:'A charted natural body.'};
       delete area.narrative;delete area.generationConstraints;delete area.initialMapKnowledge;area.nodeStatePolicy='frozenRuntime';
       const site={...structuredClone(world.definitions.naturalBody),id:siteId,spawn:true,areaId,name:`Body ${body.cell.join('-')}`,resourceNodes:body.resourceNodes,bodyCharacter:body.bodyCharacter,nodeStatePolicy:'frozenRuntime'};
+      // One meaningful choice: the berth and the physically exposed resource face.
+      // No interior floor plan or deposit identities are exposed by generation.
+      site.localSpace={entryPlaceId:'main',places:{main:{name:'Surface berth'},exposure:{name:'Resource exposure'}},
+        connections:[{from:'main',to:'exposure'},{from:'exposure',to:'main'}],subjects:[{kind:'feature',id:'exposures',placeId:'exposure',name:'Mineral exposures',serviceAccess:'facility'}],nearby:[]};
       delete site.definitionId;
       g.areas[areaId]={position:[...body.position],cell:[...body.cell],primaryLocalId:siteId,placementKey:body.placementKey};
       // Frozen facts must round-trip through the actual JSON save codec.

@@ -20,6 +20,7 @@ import { emptyVesselReports } from './vesselObservations.js';
 import { emptyDesignStudy } from './research/study.js';
 import {validateWorldGeography,reconcileAuthoredMapKnowledge} from './locations.js';
 import {validateMapKnowledge} from './mapKnowledge.js';
+import { initializeLocalPosition, validateLocalPosition, learnLocalPlaces } from './localSpace.js';
 
 const booleanMap = value => record(value) && Object.values(value).every(entry => typeof entry === 'boolean');
 const neutralDomain=(id,key,empty)=>({id,initialize:state=>{state[key]=empty();},reconcile:state=>{if(!Object.hasOwn(state,key))state[key]=empty();},validate:state=>{
@@ -49,6 +50,8 @@ export function createStateDomains({ content, world, people, research, reference
         if (context.reconcileCurrentInstances) reconcileEntityInstances(state, content, world, people);
       } },
     { id: 'ships', validate: state => validateShipStates(state, world) },
+    {id:'local-position',initialize(state){initializeLocalPosition(state,world,true);learnLocalPlaces(state,{world,content});},
+      validate:state=>validateLocalPosition(state,world),reconcile(state,context){if(context.migrateLocalPosition)learnLocalPlaces(state,{world,content});}},
     { id: 'dialogue', validate: state => validateDialogueState(state, people),
       reconcile(state, context) {
         const notice = reconcilePeopleContent(state, people);

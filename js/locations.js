@@ -22,6 +22,7 @@ import { validateNarrativeMetadata,mergeNarrativeMetadata } from './narrative/na
 import {getEntity,validEntityId} from './entities.js';
 import {cellAt,containsPosition,validateSpace,distance,compareKeys} from './worldSpace.js';
 import {areaKnowledge,admitKnownArea,admitDetectedArea,detectedContacts} from './mapKnowledge.js';
+import { validateLocalSpace, localSpaceConditions, scenePerceived, perceivedSceneName } from './localSpace.js';
 
 const record = value => value !== null && typeof value === "object" && !Array.isArray(value);
 const validId = id => typeof id === "string" && /^[A-Za-z][A-Za-z0-9_-]*$/.test(id) && !["constructor", "prototype", "__proto__"].includes(id);
@@ -144,6 +145,7 @@ function compileLocations(source, content) {
     definitions[id] = def;
   }
   for (const def of Object.values(definitions)) {
+    validateLocalSpace(def,content,{definitions},conditionSources);
     if(def.primaryLocalId!==undefined)check(def.kind==='area' && definitions[def.primaryLocalId]?.kind==='site' && !definitions[def.primaryLocalId].mobile && definitions[def.primaryLocalId].areaId===def.id,`primary Local for ${def.id}.`);
     for (const node of Object.values(def.resourceNodes ?? {})) validateLearningPolicy(node.learnWhen,{ content,world:{ definitions },conditionSources,locationId:def.id },`locations.${def.id}.nodes.${node.id}`);
     def.inspectionEffects = compileEffects(def.inspectionEffects, { content, world: { definitions },contract:conditionContracts.state }, { kind: "inspection" }, `locations.${def.id}.inspectionEffects`);
@@ -180,7 +182,7 @@ function compileLocations(source, content) {
   ]);
   const effectMetadata = effectSources.flatMap(source => describeEffects(source.effects, source.path));
   const discoveryReferences = collectDiscoveryReferences(Object.values(definitions).flatMap(def =>
-    [def.conditions, def.accessConditions, ...Object.values(def.resourceNodes ?? {}).map(n => n.learnWhen?.conditions), ...def.sceneObjects.map(scene => scene.conditions), ...def.startupMessages.map(message => message.conditions)]),
+    [def.conditions, def.accessConditions, ...localSpaceConditions(def), ...Object.values(def.resourceNodes ?? {}).map(n => n.learnWhen?.conditions), ...def.sceneObjects.map(scene => scene.conditions), ...def.startupMessages.map(message => message.conditions)]),
     effectMetadata.filter(m => m.kind === "discovery" && m.access === "produce").map(m => m.id));
   const world = { conditionSources,definitions, links, connectionDistance:source.connectionDistance,startId: source.startId, discoveryReferences, effectSources, vesselModules: content.vesselModules,
     initialSpawns: Object.values(definitions).filter(d => d.spawn !== false).map(d => ({ id: d.id, definitionId: d.id,
@@ -188,9 +190,10 @@ function compileLocations(source, content) {
       ownerId: d.initialOwnerId, controllerId: d.initialControllerId, access: structuredClone(d.initialAccess), lifecycle: d.initialLifecycle })) };
   Object.defineProperty(world,'resolveLocationDefinition',{value:(state,id)=>resolveLocationDefinition(state,world,id),enumerable:false});
   world.entityReferences = Object.values(definitions).flatMap(def => [
-    ...[def.conditions, def.accessConditions, ...Object.values(def.resourceNodes ?? {}).map(n => n.learnWhen?.conditions), ...def.sceneObjects.map(s => s.conditions), ...def.startupMessages.map(m => m.conditions)]
+    ...[def.conditions, def.accessConditions, ...localSpaceConditions(def), ...Object.values(def.resourceNodes ?? {}).map(n => n.learnWhen?.conditions), ...def.sceneObjects.map(s => s.conditions), ...def.startupMessages.map(m => m.conditions)]
       .flatMap(c => conditionEntityReferences(c, `locations:${def.id}`)),
-    ...def.sceneObjects.filter(s => s.locationId).map(s => entityReference(`scene:${def.id}/${s.id}`, s.locationId, "content"))
+    ...def.sceneObjects.filter(s => s.locationId).map(s => entityReference(`scene:${def.id}/${s.id}`, s.locationId, "content")),
+    ...(def.localSpace?.nearby??[]).map(n=>entityReference(`nearby:${def.id}`,n.targetId,'content'))
   ]).concat(effectMetadata.filter(m => m.kind === "entity" && !["current", "speaker"].includes(m.targetId)));
   for (const def of Object.values(definitions)) {
     const local = createLocationState(def, content);
@@ -210,6 +213,7 @@ export function linkLocationActions(world, actions) {
     const ids = union(def.actions, actions.filter(a => def.actionSets.includes(a.collection)).map(a => a.id));
     check(ids.every(id => knownActions.has(id)), `unknown action on ${def.id}.`);
     check(def.removeActions.every(id => ids.includes(id)), `unknown removed action on ${def.id}.`);
+    for(const subject of def.localSpace?.subjects??[])check((subject.actions??[]).every(id=>knownActions.has(id)),`unknown subject action on ${def.id}/${subject.id}.`);
     assignments.set(def.id, ids.filter(id => !def.removeActions.includes(id)));
   }
   // Validate against a detached projection so a rejected link leaves world unchanged.
@@ -233,7 +237,7 @@ export function createLocationState(def, content) {
     resources: Object.fromEntries((def.kind==='area'?content.utilities:Object.keys(content.resources)).map(id => [id, def.initialResources[id] ?? 0])),
     infrastructure: Object.fromEntries((def.kind==='area'?[]:Object.keys(content.infrastructure)).map(id => [id, {
       quantity: 0, health: 1, enabled: true, upgrades: [], ...structuredClone(def.initialInfrastructure[id] ?? {})
-    }])), flags: {}, resourceNodes: Object.fromEntries(Object.entries(def.resourceNodes ?? {}).map(([id,node]) => [id,{ resourceId: node.resourceId, remaining: node.initialReserve }]))
+    }])), flags: {}, ...(def.kind==='site'?{localKnowledge:{places:{}}}:{}), resourceNodes: Object.fromEntries(Object.entries(def.resourceNodes ?? {}).map(([id,node]) => [id,{ resourceId: node.resourceId, remaining: node.initialReserve }]))
   };
 }
 
@@ -352,10 +356,11 @@ export function createLocationActions(world, content, effectServices, worldOpera
   const sceneFor = (ctx, payload) => payload?.targetId === ctx.id && ctx.definition.sceneObjects.find(s => s.id === payload.sceneId && !s.locationId);
   actions.push({ id: "inspectScene", name: "Inspect scene object", scope: "global", access: "public",
     targets: state => locationInstances(state, world).flatMap(def => def.sceneObjects.filter(s => !s.locationId)
-      .map(s => ({ id: `inspect:${def.id}:${s.id}`, name: `Inspect ${s.name}`, payload: { targetId: def.id, sceneId: s.id } }))),
-    visible: (state, ctx, payload) => { const scene = sceneFor(ctx, payload); return !!scene && !ctx.local.flags[`examined:${scene.id}`] && !conditionReason(ctx.actionState, scene.conditions, content); },
+      .map(s => ({ id: `inspect:${def.id}:${s.id}`, name: `Inspect ${perceivedSceneName(state,world,content,def.id,s)}`, payload: { targetId: def.id, sceneId: s.id } }))),
+    visible: (state, ctx, payload) => { const scene = sceneFor(ctx, payload); return !!scene && scenePerceived(state,world,content,ctx.id,scene) && !ctx.local.flags[`examined:${scene.id}`] && !conditionReason(ctx.actionState, scene.conditions, content); },
     execute(state, ctx, payload) {
       const scene = sceneFor(ctx, payload); if (!scene) throw new Error("Unknown local scene.");
+      if(!scenePerceived(state,world,content,ctx.id,scene))throw new Error('This object is not within physical reach.');
       const id = ctx.id, text = scene.description;
       applyEffects(state, scene.effects, effectServices, { kind: "inspection", locationId: id, actorId: 'player' });
       setScopedFlag(state, "location", id, `examined:${scene.id}`); return text;
@@ -454,6 +459,7 @@ export function validateWorldGeography(state,content,world) {
   }
   for(const e of Object.values(state.entities))if(e.type==='area'&&!isTerminal(e)&&!g.areas[e.id])fail(`missing anchor ${e.id}`);
   for(const [id,def] of Object.entries(g.generatedLocationFactsById)) {
+    validateLocalSpace(def,content,{definitions:{...world.definitions,...g.generatedLocationFactsById}});
     const e=getEntity(state,id);
     if(!validEntityId(id)||!record(def)||def.id!==id||e?.definition?.id!==id||e?.definition?.catalog!=='locations'||e.type!==def.kind||world.definitions[id]||!['area','site'].includes(def.kind)||def.mobile||typeof def.name!=='string'||!def.name.trim()||!record(def.resourceNodes)||!Array.isArray(def.actions)||!Array.isArray(def.sceneObjects)||!record(def.initialInfrastructure)||!record(def.initialResources)||!record(def.capacities))fail(`definition ${id}`);
     if(def.kind==='site'&&(!g.areas[def.areaId]||def.nodeStatePolicy!=='frozenRuntime'))fail(`site ${id}`);

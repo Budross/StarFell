@@ -20,7 +20,19 @@
         <div class="panel-label"><h1 id="terminal-heading">OPERATIONS TERMINAL</h1><span>CRT–01 <i class="status-light green" aria-hidden="true"></i></span></div>
         <div class="crt">
           <div id="terminal-tabs" class="terminal-tabs" aria-label="Terminal systems"></div>
-          <p id="navigation-status" class="local-store-label" role="status" hidden></p>
+          <div id="position-strip" class="position-strip">
+            <span id="position-breadcrumb">Habitat 05 vicinity / Habitat 05</span>
+            <button id="surroundings-toggle" type="button" aria-controls="surroundings" aria-expanded="true">Surroundings</button>
+            <p id="navigation-status" class="local-store-label" role="status" hidden></p>
+          </div>
+          <div id="terminal-workspace" class="terminal-workspace surroundings-expanded">
+            <aside id="surroundings" class="surroundings" aria-labelledby="surroundings-heading">
+              <h2 id="surroundings-heading" tabindex="-1">Habitat 05</h2>
+              <section aria-labelledby="here-heading"><h3 id="here-heading">HERE</h3><div id="surroundings-here" class="surroundings-list"></div></section>
+              <section aria-labelledby="present-heading"><h3 id="present-heading">PRESENT</h3><div id="surroundings-present" class="surroundings-list"></div></section>
+              <section aria-labelledby="nearby-heading"><h3 id="nearby-heading">NEARBY</h3><div id="surroundings-nearby" class="surroundings-list"></div></section>
+              <button id="surroundings-locations" type="button">Locations</button>
+            </aside>
           <div id="terminal-panels" class="terminal-panels">
             <section id="operations-panel" class="operations-panel">
               <div class="stream-zone">
@@ -28,6 +40,11 @@
                 <div id="narrative-stream" class="narrative-stream" role="log" aria-label="Terminal activity log" aria-live="polite" tabindex="0"></div>
                 <div class="stream-footer"><span>SESSION LOG</span><span>SCROLL TO REVIEW <span aria-hidden="true">↕</span></span></div>
               </div>
+              <section id="subject-context" class="subject-context" aria-labelledby="subject-heading" hidden>
+                <div class="subject-heading"><h2 id="subject-heading" tabindex="-1"></h2><span id="subject-status"></span><button id="subject-clear" type="button">Clear selection</button></div>
+                <p id="subject-description"></p><p id="subject-service" class="subject-service"></p>
+                <div id="subject-actions" class="subject-actions"></div>
+              </section>
               <section class="directive-zone" aria-labelledby="actions-heading">
                 <div class="terminal-shortcuts">
                 <button id="tour-start" type="button" class="people-shortcut">Tour terminal</button>
@@ -114,6 +131,7 @@
               </div>
             </div>
             </section>
+          </div>
           </div>
           <section class="command-zone" aria-label="Terminal command">
             <button id="conversation-resume" type="button" class="conversation-resume" hidden></button>

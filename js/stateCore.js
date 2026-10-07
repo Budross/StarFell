@@ -8,8 +8,9 @@ import { migrateConsolidatedAreas } from './locationAreaMigration.js';
 import {installFreshWorld} from './proceduralWorld.js';
 import {freezeAuthoredGeography,reconcileAuthoredMapKnowledge} from './locations.js';
 import {emptyMapKnowledge,admitKnownArea} from './mapKnowledge.js';
+import {initializeLocalPosition} from './localSpace.js';
 
-export const SAVE_VERSION = 13;
+export const SAVE_VERSION = 14;
 
 export function createInitialState(content, world, people, research, seed = 0x07B3A91D, lifecycle) {
   validateSpawnIds(world, people, world.principals ?? {});
@@ -98,7 +99,13 @@ export function migrateState(saved, content, world, people, notices = [], resear
     state.saveVersion=13;
     notices.push('Existing authored geography and navigation knowledge were preserved. Procedural bodies are created only for new games.');
   }
-  currentLifecycle.reconcile(state, { notices, reconcileCurrentInstances: saved.saveVersion >= 8, migrateItemKnowledge:saved.saveVersion < 10, migrateMissionResults:saved.saveVersion<11 });
+  if(saved.saveVersion<14) {
+    initializeLocalPosition(state,world);
+    for(const [id,host] of Object.entries(state.locations))if(state.entities[id]?.type!=='area')host.localKnowledge={places:{}};
+    state.saveVersion=14;
+    notices.push('Local position and surroundings are now available. Existing assets, discoveries and journeys were preserved.');
+  }
+  currentLifecycle.reconcile(state, { notices, reconcileCurrentInstances: saved.saveVersion >= 8, migrateItemKnowledge:saved.saveVersion < 10, migrateMissionResults:saved.saveVersion<11, migrateLocalPosition:saved.saveVersion<14 });
   validateState(state, content, world, people, research, undefined, currentLifecycle);
   return state;
 }

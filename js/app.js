@@ -29,6 +29,8 @@ import { firstRunMessages } from './streamContent.js';
 import itemKnowledgeDisplay from './itemKnowledgeDisplay.js';
 import itemContextDisplay from './itemContextDisplay.js';
 import facilitySystemsDisplay from './facilitySystemsDisplay.js';
+import {createImmediateLocationViews} from './immediateLocation.js';
+import surroundingsDisplay from './surroundingsDisplay.js';
 
 const systems = buildGameSystems();
 const { content, world, people, research, actions, contextFor } = systems;
@@ -65,6 +67,7 @@ const bus = initializeEventBus({
 
 // Register initial subscribers before queued messages are released.
 const logDisplay = consoleDisplay(bus, "#narrative-stream", (itemId, amount) => describeAmounts({ [itemId]: amount }, content));
+let renderSurroundings=null;
 const tabs = terminalTabs({
   tabList: document.querySelector("#terminal-tabs"),
   panelContainer: document.querySelector("#terminal-panels")
@@ -72,6 +75,7 @@ const tabs = terminalTabs({
 tabs.registerTab({
   id: "operations", label: "Operations", panel: document.querySelector("#operations-panel"),
   onActivate() {
+    renderSurroundings?.setActiveTab('operations');
     logDisplay.onActivate();
     const button=document.querySelector('#terminal-tab-operations');
     button.classList.remove('has-updates'); button.setAttribute('aria-label','Operations');
@@ -79,6 +83,7 @@ tabs.registerTab({
     elements.feedback.setAttribute("aria-live", "off");
   },
   onDeactivate() {
+    renderSurroundings?.setActiveTab('other');
     stopRepeating();
     logDisplay.onDeactivate();
     elements.feedback.setAttribute("aria-live", "polite");
@@ -156,9 +161,10 @@ actionRegistry.initialize({ getState: runtime.getState, applyAction, getContext:
   if (actions.some(a => [a.id, a.name, ...(a.aliases ?? [])].some(name => ["talk", "people", "research", "look", "observe", "debug fog"].includes(name.trim().toLowerCase())))) throw new Error("talk, people, research, look, observe, and debug fog are reserved presentation commands.");
 } });
 let observationActions=[];
-const renderActions = playerActionsDisplay(id => handleAction(id, undefined, true), "#player-actions",group=>[
-  ...actionRegistry.getActions(group), ...(group==='directives'?observationActions:[])
-]);
+const renderActions = playerActionsDisplay(id => handleAction(id, undefined, true), "#player-actions",group=>{
+  const mapped=renderSurroundings?.mappedActionIds()??new Set();
+  return [...actionRegistry.getActions(group), ...(group==='directives'?observationActions:[])].filter(action=>!mapped.has(action.id));
+});
 let selectedGathering = null;
 let repeatTimer = null;
 let lastGatheringActionId = null;
@@ -232,6 +238,13 @@ document.querySelector('#facility-systems-shortcut').addEventListener('click',()
   tabs.activateTab('systems'); renderSystems(runtime.getState());
   revealTerminalTarget(document.querySelector('#facility-systems-heading'));
 });
+renderSurroundings=surroundingsDisplay({views:createImmediateLocationViews(systems),getActionStatus:actionRegistry.getActionStatus,
+  onAction:(id,payload)=>handleAction(id,payload),onObserve:request=>observe(request),
+  onSelect:()=>tabs.activateTab('operations'),onOpen:link=>{
+    tabs.activateTab(link.tab);
+    if(link.tab==='locations'&&link.targetId)renderLocations.select(link.targetId);
+    if(link.tab==='people')renderPeople.show();
+  }});
 
 function loadOrCreateGame() {
   try {
@@ -356,6 +369,7 @@ function render() {
   elements.activeTime.textContent = formatCycle(view.simulationTime);
   elements.solarHealth.closest("section").hidden = view.solarHealth === null;
   elements.solarHealth.textContent = `${Math.round(view.solarHealth * 100)}%`;
+  renderSurroundings(state);
   renderActions();
   renderCrafting(context.actionState);
   renderProcessing(state);
